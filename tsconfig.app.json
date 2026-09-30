@@ -1,0 +1,20 @@
+{
+  "extends": "./node_modules/@vue/tsconfig/tsconfig.dom.json",
+  "include": ["env.d.ts", "src/**/*", "src/**/*.vue", "playground/**/*", "playground/**/*.vue"],
+  "compilerOptions": {
+    // 数组与对象索引的额外安全检查。
+    "noUncheckedIndexedAccess": true,
+
+    // 增量信息放这里，不要落到仓库根目录。
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo"
+
+    // 【注意】这里刻意**没有** paths 映射。
+    //
+    // user-client 自己的 vite.config.ts 里把 `@` 指向了 `user-client/src`。
+    // 本库是**发源码**的（宿主的 Vite 直接编译 `../ui_73info/src/**`），
+    // 所以库内写 `@/xxx` 在宿主里会被解析到宿主自己的 src 去——在本地
+    // `vue-tsc` 能过、一进入宿主就报「找不到模块」，是最难查的一类问题。
+    //
+    // 因此库内（含 playground）**一律用相对路径**。不加映射不是遗漏，是护栏。
+  }
+}

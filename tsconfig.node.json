@@ -1,0 +1,12 @@
+// 构建期在 Node.js 环境里跑的模块（vite.config.ts）的类型配置。
+{
+  "extends": "./node_modules/@tsconfig/node24/tsconfig.json",
+  "include": ["vite.config.ts"],
+  "compilerOptions": {
+    "module": "preserve",
+    "moduleResolution": "bundler",
+    "types": ["node"],
+    "noEmit": true,
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo"
+  }
+}

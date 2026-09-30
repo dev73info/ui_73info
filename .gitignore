@@ -1,0 +1,23 @@
+node_modules
+.DS_Store
+dist
+coverage
+*.local
+
+# 编辑器目录与文件
+.vscode/*
+!.vscode/extensions.json
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+*.tsbuildinfo
+
+# 日志
+logs
+*.log
+npm-debug.log*
+pnpm-debug.log*

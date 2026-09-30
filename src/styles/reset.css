@@ -1,0 +1,63 @@
+/* ============================================================================
+   ui_73info · 样式底座
+   ============================================================================
+
+   只做两件组件自己需要的事，**不接管宿主页面**：
+   1. 把排版基线（字体 / 字号 / 行高 / 墨色）交给组件根元素自己声明；
+   2. 组件内部一律 border-box。
+
+   为什么不能让组件「继承宿主页面的样式就好」：这一端并存两套视觉体系（portal / dev），
+   两套的字体族与墨色不同。若组件依赖从 `body` 继承，那么同一个按钮挂在门户页与
+   开发者页上会拿到两套不同的字色——而 `resource-core.css` 的
+   `body { color: var(--text-main) }`（#172033，门户墨色）确实会盖到开发者页面上，
+   这正是 dev-base.css 里专门在作用域上重声明一次墨色的原因。
+   组件声明 `color: var(--73-ink)` 就与这件事彻底解耦：主题属性落在哪儿，它就取哪套值。
+
+   ## 类名约定
+
+   每个组件的**根元素**带两个类：自己的名字 + 公共的 `t73`，例如
+   `<button class="t73-button t73" />`、`<div class="t73-dialog t73">`。
+   本文件所有规则都挂在 `:where(.t73 ...)` 下，`:where()` 的优先级为 0，
+   所以组件自己的样式永远能覆盖底座，不需要 `!important`。
+   ============================================================================ */
+
+:where(.t73),
+:where(.t73) *,
+:where(.t73) *::before,
+:where(.t73) *::after {
+  box-sizing: border-box;
+}
+
+/* 排版基线。只落在组件根元素上，不往下传染——否则会盖掉组件内部刻意的配色，
+   比如标签的状态色、按钮上的白色文字。 */
+:where(.t73) {
+  font-family: var(--73-font-family);
+  font-size: var(--73-font-size-body);
+  font-weight: 400;
+  line-height: var(--73-line-height);
+  color: var(--73-ink);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* 表单控件默认不继承字体，组件根元素若是原生控件要显式声明 */
+:where(button.t73),
+:where(input.t73),
+:where(textarea.t73),
+:where(select.t73) {
+  font: inherit;
+  color: inherit;
+  margin: 0;
+}
+
+/* 关了动效就别让过渡还跑 */
+@media (prefers-reduced-motion: reduce) {
+  :where(.t73),
+  :where(.t73) *,
+  :where(.t73) *::before,
+  :where(.t73) *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

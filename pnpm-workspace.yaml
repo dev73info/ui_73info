@@ -1,0 +1,11 @@
+# Windows 侧开发（win32）、WSL 侧构建（linux），两边共用同一份 node_modules。
+# 不声明这里 pnpm 会按当前平台的原生依赖安装（rolldown / lightningcss）。
+# pnpm 10 起 package.json 里的 pnpm 字段不再被读取，只能写在这里。
+supportedArchitectures:
+  os:
+    - win32
+    - linux
+  cpu:
+    - x64
+  libc:
+    - glibc

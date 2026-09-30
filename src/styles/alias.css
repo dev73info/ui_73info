@@ -1,0 +1,99 @@
+/* ============================================================================
+   ui_73info · 迁移兼容层（`--73-*` → 旧变量名）
+   ============================================================================
+
+   **这个文件是可选的，且只在迁移期需要。** 它让 user-client 里那些还没搬走的手写样式
+   （读 `--dev-*` / `--wb-*` / `--accent` / `--portal-*` 的几百处）继续工作，
+   同时值的来源已经统一到 `tokens.css` 一处——改主色只改 `tokens.css`，旧代码跟着变。
+   全部搬完之后整个文件连同旧的 `--el-*` 映射一起删掉。
+
+   ## 用它之前必须知道的三件事
+
+   1. **必须在 `<html>` 上应用主题属性**（`data-73-theme="portal" | "dev" | "workbench"`）。
+      原因见 `tokens.css` 顶部：自定义属性在声明它的元素上求值，而旧变量名广泛用于
+      `:root` 作用域。把主题属性挂到内部 div 上时，只有读 `--73-*` 的新组件跟着变，
+      这个兼容层不会生效。
+   2. **不应用主题属性时不要引入本文件。** 本文件的取值全部是 `var(--73-*)`，
+      而 `--73-*` 的默认主题是 `portal`。若在没挂主题属性的情况下引入，
+      `--dev-*` 会被解析成门户侧的色值，**开发者页面会整片变色**。
+      没准备好迁移就不要 import 它——`--dev-*` 仍然由 user-client 自己的
+      `dev-base.css` 提供，一切照旧。
+   3. **`--profile-*` 不在桥接范围内。** 它是 `profile.css` 给 `.profile-page` 登记的
+      页面级色板（强调色 `#4f8cff`，比门户侧更亮），《设计规范》明确它不作为全局令牌，
+      所以它不进入主题层，继续留在 user-client。
+
+   顺带解决一处长期隐患：`--wb-*`（工作台外壳）与 `--dev-*` 的取值逐项相同，
+   源文件里靠注释提醒「两边必须一起改」，实际是两个命名空间各写了一遍。桥接之后
+   两者都指向同一组 `--73-*`，不再存在改一边漏一边的可能。
+   ============================================================================ */
+
+/* ----------------------------------------------------------------------------
+   门户侧旧变量名：`resource-core.css` 的无前缀令牌 + `home.css` 的 `--portal-*`
+   ---------------------------------------------------------------------------- */
+:root,
+[data-73-theme='portal'] {
+  /* resource-core.css 的 :root */
+  --bg-deep: var(--73-bg);
+  --bg-mid: var(--73-bg-soft);
+  --bg-soft: var(--73-surface-strong);
+  --card-bg: var(--73-surface);
+  --card-border: var(--73-border-soft);
+  --text-main: var(--73-ink);
+  --text-sub: var(--73-ink-soft);
+  --accent: var(--73-accent);
+  --success: var(--73-success);
+  --glass-blur: var(--73-glass-blur);
+  --primary-gradient: var(--73-accent-gradient);
+
+  /* home.css 的 .portal-home（原来是页面级，这里提到主题作用域上；
+     值不变，页面选择器上的声明仍然优先，不影响首页自身） */
+  --portal-panel: var(--73-surface);
+  --portal-panel-strong: var(--73-surface-strong);
+  --portal-border: var(--73-border);
+  --portal-shadow: var(--73-shadow-card);
+  --portal-shadow-hover: var(--73-shadow-card-hover);
+  --portal-muted: var(--73-ink-muted);
+  --portal-ink: var(--73-ink);
+}
+
+/* ----------------------------------------------------------------------------
+   开发者侧旧变量名：`dev-base.css` 的 `--dev-*` + `portal-workbench.css` 的 `--wb-*`
+   ---------------------------------------------------------------------------- */
+[data-73-theme='dev'],
+[data-73-theme='workbench'] {
+  /* --- 色值 --- */
+  --dev-bg: var(--73-bg);
+  --dev-surface: var(--73-surface);
+  --dev-surface-strong: var(--73-surface-strong);
+  --dev-ink: var(--73-ink);
+  --dev-ink-soft: var(--73-ink-soft);
+  --dev-muted: var(--73-ink-muted);
+  --dev-line: var(--73-border);
+  --dev-blue: var(--73-accent);
+  --dev-cyan: var(--73-success);
+  --dev-gold: var(--73-warning);
+  --dev-shadow: var(--73-shadow-card);
+  --dev-scrollbar-thumb: var(--73-scrollbar-thumb);
+  --dev-scrollbar-thumb-hover: var(--73-scrollbar-thumb-hover);
+
+  /* --- 尺寸档 ---
+     原来这两个文件各自写了一组 px（dev-base.css 的 --dev-radius-* 与
+     portal-workbench.css 的 --wb-radius-*），注释里互相提醒要一起改。现在同源。 */
+  --dev-radius-card: var(--73-radius-card);
+  --dev-radius-inner: var(--73-radius-inner);
+  --dev-radius-control: var(--73-radius-control);
+  --dev-control-height: var(--73-control-height);
+
+  /* --- 工作台外壳（--wb-*）---
+     主色与冷灰三件套本来与 --dev-* 逐项同值，这里直接指向同一组令牌。 */
+  --wb-radius-card: var(--73-radius-card);
+  --wb-radius-item: var(--73-radius-inner);
+  --wb-radius-control: var(--73-radius-control);
+  --wb-control-height: var(--73-control-height);
+  --wb-accent: var(--73-accent);
+  --wb-accent-soft: var(--73-accent-soft);
+  --wb-accent-line: var(--73-accent-line);
+  --wb-line: var(--73-border);
+  --wb-ink-soft: var(--73-ink-soft);
+  --wb-shadow: var(--73-shadow-card);
+}

@@ -1,0 +1,279 @@
+/* ============================================================================
+   ui_73info · 令牌层（本库唯一的色值来源）
+   ============================================================================
+
+   这是三层架构里最下面的一层：令牌 → 行为原语 → 组件。**组件层禁止出现裸色值**，
+   一律 `var(--73-*)`。这一条约束就是这一层存在的理由——user-client 里现有 3666 处
+   颜色字面量、只有 925 处令牌引用，正是因为缺了这一层。
+
+   ## 两套主题，一套词汇
+
+   user-client 一个 SPA 里并存两套视觉体系（见 user-client/doc/设计规范.md 第一节），
+   对应这里的两个主题。**同名令牌在两套主题里取不同的值**，组件只认 `--73-*`，
+   不关心自己当前在哪一套主题下。
+
+   | 主题 | 什么时候用 | 主色 |
+   | --- | --- | --- |
+   | `portal`（默认） | 首页、需求大厅、资源、社区、个人中心、工作台外壳 | `#1f4ad1` |
+   | `dev` | 开发者工作台、资源管理、需求详情、钱包 | `#1f4ad1` + 青 `#2aa6a4` + 金 `#b9812b` |
+
+   `workbench` 是 `dev` 的**别名**，不是第三套色值。门户工作台外壳自己那套 `--wb-*`
+   （见 user-client/src/styles/portal-workbench.css）的取值与 `--dev-*` 逐项相同——
+   主色、描边、弱化墨色、阴影全都是同一个值，源文件注释里也写明了「两边必须一起改」。
+   所以这里只做别名，**不新造第三套令牌**（设计规范第一节的硬规则）。
+
+   ## 怎么切主题
+
+   在 `<html>` 上换一个属性，纯 CSS，不需要 JS 重渲染：
+
+   ```html
+   <html data-73-theme="dev">     <!-- 开发者体系 -->
+   <html data-73-theme="portal">  <!-- 门户体系（也是不写该属性时的默认值） -->
+   ```
+
+   `applyTheme()`（`src/theme/index.ts`）封装了这个动作；挂在子树上的 `[data-73-theme]`
+   同样生效，新组件因此支持局部换主题。
+
+   ## 一个必须知道的 CSS 细节
+
+   自定义属性在**声明它的那个元素**上求值，后代继承的是已经算好的结果。user-client 现有的
+   `--el-*` 与两套 `:root` 令牌全部声明在 `:root` 上，所以：
+
+   - **要让 `alias.css`（旧变量名 → `--73-*` 的兼容层）正确工作，主题属性必须落在 `<html>` 上。**
+     把主题属性挂到某个内部 `<div>` 上，只有读 `--73-*` 的新组件会跟着变，
+     `:root` 上那些旧变量名不会。
+   - 只读 `--73-*` 的新组件不受这条限制，子树换主题就是换子树里那棵。
+
+   这条限制只影响迁移期的兼容层，不影响新组件。
+   ============================================================================ */
+
+/* ============================================================================
+   1. 与主题无关的令牌
+   ----------------------------------------------------------------------------
+   尺寸、字号、圆角、动效、层级、模糊半径。两套主题共用，所以在 `:root` 上声明一次。
+   值来自 user-client 现状，不重新设计；圆角档位与《设计规范》第四节登记的一致。
+   ============================================================================ */
+:root {
+  /* --- 圆角 ---
+     《设计规范》给新代码登记的档位是 12（卡片）/ 10（小控件）/ 8（内嵌块）/ 999（胶囊）。
+     这里把「卡片 24px」「内嵌块 12px」「控件 10px」按 dev-base.css / portal-workbench.css
+     已经收敛好的那三档搬过来（两侧同源，不要再各写一份 px），另补 8px 与胶囊、
+     以及弹窗一档。 */
+  --73-radius-card: 24px;
+  --73-radius-inner: 12px;
+  --73-radius-control: 10px;
+  --73-radius-sm: 8px;
+  --73-radius-pill: 999px;
+  /* 弹窗圆角：仓库现有弹窗实际是 22px（modal.css 的 .auth-modal/.pay-modal）、
+     18px（dev-icon-dialog-modal）、8px（dev-recharge-dialog）三个值并存，同一角色三种圆角。
+     这里取中间档 18px 收成一个值；要改成《设计规范》新代码档位里的 12px，只改这一处。 */
+  --73-radius-dialog: 18px;
+
+  /* --- 控件尺寸 ---
+     控件高度统一到 36px（--dev-control-height / --wb-control-height），
+     胶囊 28px（.wb-chip / .dev-chip），避免「同一种控件各页不同高」。 */
+  --73-control-height: 36px;
+  --73-control-height-sm: 28px;
+  --73-chip-height: 28px;
+
+  /* --- 字号与字重 ---
+     《设计规范》第四节：正文主力 13px、次要 12px、标签角标 11px、卡片标题 14–18px。
+     不引入 10px 以下或 20px 以上的新档位。 */
+  --73-font-size-body: 13px;
+  --73-font-size-sm: 12px;
+  --73-font-size-xs: 11px;
+  --73-font-size-md: 14px;
+  --73-font-size-title: 18px;
+  --73-font-size-dialog-title: 20px;
+  --73-font-weight-bold: 700;
+  --73-line-height: 1.6;
+  --73-font-family-mono: 'IBM Plex Mono', 'SFMono-Regular', Consolas, monospace;
+
+  /* --- 动效 ---
+     取仓库里控件过渡的既有口径（.dev-btn / .dev-recharge-dialog__headerbtn 都是 160ms ease）。 */
+  --73-transition: 160ms ease;
+
+  /* --- 层级 ---
+     弹窗遮罩 3000 来自 modal.css 的 `.el-overlay { z-index: 3000 !important }`
+     （那里为了盖住工作台头部而提升过）；下拉与气泡在它之下，全局提示在它之上。 */
+  --73-z-dropdown: 2000;
+  --73-z-dialog: 3000;
+  --73-z-toast: 3100;
+
+  /* --- 毛玻璃与焦点环 ---
+     模糊 12px 取自 resource-core.css 的 --glass-blur。
+     焦点环用强调线的颜色，不再另造一个透明蓝。 */
+  --73-glass-blur: 12px;
+  --73-focus-ring: 0 0 0 3px var(--73-accent-line);
+}
+
+/* ============================================================================
+   2. 主题：portal（默认）
+   ----------------------------------------------------------------------------
+   色值来源：
+   - user-client/src/styles/resource-core.css 的 `:root`（--bg-deep / --card-bg / --accent …）
+   - user-client/src/styles/home.css 的 `.portal-home`（--portal-*）
+   - user-client/src/styles/profile.css 的 `.profile-page`（状态色的「浅底 + 深字」）
+   全部照搬，一个值都没有重调。
+   ============================================================================ */
+:root,
+[data-73-theme='portal'] {
+  /* --- 背景与表面 --- */
+  --73-bg: #edf3f5; /* --bg-deep */
+  --73-bg-soft: #f5f8fa; /* --bg-mid */
+  --73-surface: rgba(255, 255, 255, 0.92); /* --card-bg */
+  --73-surface-strong: #ffffff; /* --bg-soft */
+  /* 内嵌块与只读区的浅填充。门户侧没有登记这个角色，取开发者侧同一个中性冷调填充
+     （dev 的 --el-fill-color-light），两边色相一致，不会出现第二套灰。 */
+  --73-inset: rgba(241, 244, 251, 0.62);
+
+  /* --- 描边 --- */
+  --73-border: rgba(203, 213, 225, 0.72); /* --portal-border */
+  --73-border-soft: rgba(148, 163, 184, 0.3); /* --card-border，卡片内分隔线 */
+  --73-border-hover: rgba(31, 74, 209, 0.32); /* 与 dev 的 --el-border-color-hover 同值 */
+
+  /* --- 文字 --- */
+  --73-ink: #172033; /* --text-main */
+  --73-ink-soft: #52627a; /* --text-sub */
+  --73-ink-muted: #64748b; /* --portal-muted */
+  --73-ink-placeholder: #94a3b8; /* dev 的占位符色，两端同值 */
+  --73-ink-disabled: #cbd5e1;
+  --73-ink-inverse: #ffffff; /* 主按钮上的文字 */
+
+  /* --- 强调色 --- */
+  --73-accent: #1f4ad1;
+  --73-accent-soft: rgba(31, 74, 209, 0.08);
+  --73-accent-line: rgba(31, 74, 209, 0.32);
+  /* 门户侧主按钮走渐变（resource-core.css 的 --primary-gradient）。 */
+  --73-accent-gradient: linear-gradient(135deg, #2563eb, #4f8cff);
+  --73-accent-contrast: #ffffff;
+
+  /* --- 状态色 ---
+     成功取 resource-core.css 登记的门户主绿；警示取首页统计卡的「琥珀」档位
+     （设计规范第三节登记过）；危险取 profile.css 的危险深字。
+     软底与深字沿用 profile.css 那组「浅底 + 深字」，设计规范明确要求新写状态标签照这个思路，
+     不要直接用饱和色做背景。 */
+  --73-success: #16805c;
+  --73-success-soft: rgba(34, 197, 94, 0.12);
+  /* 状态描边：源文件没有登记这一档，用基色算 32%（与 --73-accent-line 同一个 alpha），
+     这样不必为每一支状态再抄一个字面量，换基色时描边自动跟着走。 */
+  --73-success-line: color-mix(in srgb, var(--73-success) 32%, transparent);
+  --73-success-text: #166534;
+
+  --73-warning: #d97706;
+  --73-warning-soft: rgba(245, 158, 11, 0.14);
+  --73-warning-line: color-mix(in srgb, var(--73-warning) 32%, transparent);
+  --73-warning-text: #92400e;
+
+  --73-danger: #b42318;
+  --73-danger-soft: rgba(239, 68, 68, 0.12);
+  --73-danger-line: color-mix(in srgb, var(--73-danger) 32%, transparent);
+  --73-danger-text: #b42318;
+
+  --73-info: #64748b;
+
+  /* --- 滚动条 ---
+     门户侧没有登记滚动条色（外壳的滚动交给 el-scrollbar），这里用弱化墨色算两档。 */
+  --73-scrollbar-thumb: color-mix(in srgb, var(--73-ink-muted) 42%, transparent);
+  --73-scrollbar-thumb-hover: color-mix(in srgb, var(--73-ink-muted) 62%, transparent);
+
+  /* --- 阴影 --- */
+  --73-shadow-card: 0 14px 34px rgba(71, 85, 105, 0.08); /* --portal-shadow */
+  --73-shadow-card-hover: 0 20px 44px rgba(71, 85, 105, 0.13); /* --portal-shadow-hover */
+  --73-shadow-control: 0 10px 22px rgba(31, 74, 209, 0.22); /* 主按钮悬浮，同 dev */
+  --73-shadow-dialog: 0 20px 48px rgba(30, 64, 175, 0.16);
+  --73-dialog-veil: rgba(15, 23, 42, 0.16); /* modal.css 的 .modal-wrap 遮罩 */
+
+  /* --- 字体 ---
+     实际生效的是 resource-core.css 给 body 声明的这一条（仓库里没有任何 @font-face，
+     声明的 Web 字体不会加载，最终落到系统默认无衬线）。详见设计规范第四节。 */
+  --73-font-family: 'Space Grotesk', 'Noto Sans SC', sans-serif;
+}
+
+/* ============================================================================
+   3. 主题：dev（`workbench` 为别名）
+   ----------------------------------------------------------------------------
+   色值来源：user-client/src/styles/dev-base.css 的 `:root`（--dev-*），
+   以及工作台外壳 portal-workbench.css 的 `--wb-*`（与 --dev-* 逐项同值，故合为一处）。
+
+   三个强调色的语义（dev-base.css 顶部注释写明，且被上百处引用，不可换色相）：
+   蓝 = 进行中、青 = 已完成、金 = 金额与提示。所以这一套的 success 是**青**不是绿、
+   warning 是**金**不是琥珀——与 portal 不同，这是刻意的。
+   ============================================================================ */
+[data-73-theme='dev'],
+[data-73-theme='workbench'] {
+  /* --- 背景与表面 --- */
+  --73-bg: #f1f4fb; /* --dev-bg */
+  --73-bg-soft: #f1f4fb; /* 开发者侧只有一档底色 */
+  --73-surface: rgba(255, 255, 255, 0.96); /* --dev-surface，冷白 */
+  --73-surface-strong: #ffffff; /* --dev-surface-strong */
+  --73-inset: rgba(241, 244, 251, 0.62); /* --el-fill-color-light */
+
+  /* --- 描边 --- */
+  --73-border: rgba(203, 213, 225, 0.66); /* --dev-line */
+  --73-border-soft: rgba(203, 213, 225, 0.42); /* --el-border-color-lighter */
+  --73-border-hover: rgba(31, 74, 209, 0.32); /* --el-border-color-hover */
+
+  /* --- 文字 ---
+     注意 --73-ink 是 #0f172a，比门户侧的 #172033 更冷更深；resource-core.css 的
+     `body { color: var(--text-main) }` 会把这个墨色盖到所有页面，dev-base.css 里专门
+     在作用域上显式声明了一次来纠回来。组件层声明 color: var(--73-ink) 即可，不继承 body。 */
+  --73-ink: #0f172a; /* --dev-ink */
+  --73-ink-soft: #475569; /* --dev-ink-soft */
+  --73-ink-muted: #64748b; /* --dev-muted */
+  --73-ink-placeholder: #94a3b8; /* --el-text-color-placeholder */
+  --73-ink-disabled: #cbd5e1; /* --el-text-color-disabled */
+  --73-ink-inverse: #ffffff;
+
+  /* --- 强调色 --- */
+  --73-accent: #1f4ad1; /* --dev-blue */
+  --73-accent-soft: rgba(31, 74, 209, 0.08); /* .dev-btn--ghost:hover 的底色 */
+  --73-accent-line: rgba(31, 74, 209, 0.32); /* .dev-btn--ghost:hover 的描边 */
+  /* 开发者侧主按钮是平色（.dev-btn--primary 就是 background: var(--dev-blue)），
+     没有门户侧那个渐变。这里让渐变退化为纯色，组件层不必为两端分支。 */
+  --73-accent-gradient: linear-gradient(135deg, #1f4ad1, #1f4ad1);
+  --73-accent-contrast: #ffffff;
+
+  /* --- 状态色：青 / 金 / 红 --- */
+  --73-success: #2aa6a4; /* --dev-cyan，「已完成」 */
+  --73-success-soft: rgba(42, 166, 164, 0.12);
+  --73-success-line: color-mix(in srgb, var(--73-success) 32%, transparent);
+  --73-success-text: #228583; /* --el-color-success-dark-2 */
+
+  --73-warning: #b9812b; /* --dev-gold，「金额与提示」 */
+  --73-warning-soft: rgba(185, 129, 43, 0.12);
+  --73-warning-line: color-mix(in srgb, var(--73-warning) 32%, transparent);
+  --73-warning-text: #946722; /* --el-color-warning-dark-2 */
+
+  /* 危险色是开发者体系里唯一一支红，dev-base.css 明确保留了它的「语义红」身份
+     （只用于终止合作 / 解散 / 删除这类破坏性操作），没有跟强调色统一。取 .dev-btn--danger 的值。 */
+  --73-danger: #dc2626;
+  --73-danger-soft: rgba(220, 38, 38, 0.08); /* .dev-btn--danger:hover 的底色 */
+  --73-danger-line: rgba(220, 38, 38, 0.32); /* .dev-btn--danger 的描边 */
+  --73-danger-text: #dc2626;
+
+  --73-info: #64748b;
+
+  /* --- 滚动条：蓝→青渐变，开发者侧专有 --- */
+  --73-scrollbar-thumb: linear-gradient(180deg, rgba(31, 74, 209, 0.62), rgba(42, 166, 164, 0.72));
+  --73-scrollbar-thumb-hover: linear-gradient(
+    180deg,
+    rgba(31, 74, 209, 0.82),
+    rgba(42, 166, 164, 0.88)
+  );
+
+  /* --- 阴影 --- */
+  --73-shadow-card: 0 20px 44px rgba(71, 85, 105, 0.1); /* --dev-shadow */
+  /* 开发者侧的卡片悬浮不抬升（--dev-shadow 只有一个值），所以两档同值。 */
+  --73-shadow-card-hover: 0 20px 44px rgba(71, 85, 105, 0.1);
+  --73-shadow-control: 0 10px 22px rgba(31, 74, 209, 0.22); /* .dev-btn--primary:hover */
+  --73-shadow-dialog: 0 20px 48px rgba(30, 64, 175, 0.16);
+  --73-dialog-veil: rgba(15, 23, 42, 0.16);
+
+  /* --- 字体 ---
+     dev-base.css 在 `:root` 声明的这一条**不会作用到正文**（body 自己有 font-family），
+     写着 IBM Plex Sans 但实际看不到它。这里照搬登记，等补齐字体文件后自然生效。 */
+  --73-font-family:
+    'IBM Plex Sans', 'PingFang SC', 'Noto Sans SC', 'Hiragino Sans GB', 'Microsoft YaHei',
+    sans-serif;
+}

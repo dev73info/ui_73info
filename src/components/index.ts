@@ -1,0 +1,7 @@
+export * from './TButton'
+export * from './TCard'
+export * from './TDialog'
+export * from './TForm'
+export * from './TIcon'
+export * from './TInput'
+export * from './TTag'
