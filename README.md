@@ -86,7 +86,9 @@ import 'ui_73info/alias.css'
 `el-select-v2` 的虚拟化（改为普通列表渲染）与 `ElConfigProvider`（没有 locale 层）。
 
 **已接入 `user-client`**（2026-09-30）：link 依赖与 Vite 分块、样式引入顺序、
-按路由切主题（门户 / 开发者）都已完成并实测；第一个迁移页 `BadgeCenterView` 已迁完。
+按路由切主题（门户 / 开发者）都已完成并实测。迁移按耦合度分批推进：样板页 `BadgeCenterView`
+与**第一批 15 个页面**（`<el-*>` 只有 button / icon / tag 的那些）已迁完，
+`user-client` 里还剩 37 个文件带 `<el-*>`、约 950 处标签。
 
 未实现：`user-client` 其余页面尚未迁移（逐页推进，顺序见
 [doc/开发指南.md](doc/开发指南.md) 第六节）；自动化视觉测试还没有；
