@@ -8,8 +8,18 @@
  * **定时器不在这里**。原稿把它放在组件里（想在卸载时一并清掉），但那需要 manager
  * 反过来拿到组件实例去调 `schedule`，多出一条容易出错的耦合。改由 manager 持有：
  * 它的生命周期与提示本身一致，关闭时清掉即可。
+ *
+ * ## 视觉口径来自宿主既有的 toast
+ *
+ * 结构对着 `user-client/src/components/AppToast.vue` + `src/styles/toast.css` 做：
+ * 右下角、半透明语气色块 + 同色描边、粗体文案、常驻关闭按钮；≤640px 挪到顶部通栏。
+ * 这样宿主把 55 处 `showToast` 换成 `TMessage` 时，看到的是同一个东西。
+ *
+ * 对着宿主抄结构，但**色值一律换成库的语气令牌**，所以有三处是刻意的收敛，
+ * 不是抄漏：`info` 由蓝改中性灰（宿主的蓝是那一处的 Tailwind 字面量，本库的
+ * `--73-info` 是登记过的中性色，也与 Element 的 `info` 一致）；描边由 50% 透明
+ * 收到令牌的 32%；投影由那两层的纯黑改成 `--73-shadow-panel`。
  */
-import TButton from '../TButton/TButton.vue'
 import { messageTone, type MessageItem, type MessageType } from './types'
 
 defineProps<{
@@ -19,12 +29,15 @@ defineProps<{
   onClose: (id: number) => void
 }>()
 
-/** 每种语气的图标路径。画在同一枚圆环里，只换中间的笔画 */
-const ICON_PATHS: Record<MessageType, string> = {
-  info: 'M8 7.2v4.6M8 5.2v.6',
-  success: 'M4.6 8.4l2.2 2.2 4.6-5',
-  warning: 'M8 5v3.6M8 10.8v.6',
-  error: 'M5.6 5.6l4.8 4.8M10.4 5.6l-4.8 4.8',
+/**
+ * 语气 → 无障碍角色。
+ *
+ * 提示是「说话」，不是「报错」：成功与信息用 `status`（礼貌播报，不打断读屏），
+ * 只有警示与错误才用 `alert`（抢播）。宿主那条 toast 统一写的是 `status`，
+ * 这里按语气分开——同一句话要不要打断，取决于它是「已保存」还是「支付失败」。
+ */
+function roleOf(type: MessageType): 'alert' | 'status' {
+  return type === 'error' || type === 'warning' ? 'alert' : 'status'
 }
 </script>
 
@@ -35,34 +48,18 @@ const ICON_PATHS: Record<MessageType, string> = {
       :key="item.id"
       class="t73-message t73"
       :class="`t73-message--tone-${messageTone(item.type)}`"
-      role="alert"
+      :role="roleOf(item.type)"
     >
-      <span class="t73-message__icon" aria-hidden="true">
-        <svg viewBox="0 0 16 16">
-          <circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor" stroke-width="1.4" />
-          <path
-            :d="ICON_PATHS[item.type]"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.7"
-            stroke-linecap="round"
-          />
-        </svg>
-      </span>
       <span class="t73-message__text">{{ item.message }}</span>
-      <TButton
+      <button
         v-if="item.closable"
         class="t73-message__close"
-        variant="text"
-        tone="neutral"
-        size="sm"
-        aria-label="关闭"
+        type="button"
+        aria-label="关闭提示"
         @click="onClose(item.id)"
       >
-        <svg viewBox="0 0 16 16" aria-hidden="true">
-          <path d="M4 4l8 8M12 4l-8 8" fill="none" stroke="currentColor" stroke-width="1.6" />
-        </svg>
-      </TButton>
+        ×
+      </button>
     </div>
   </TransitionGroup>
 </template>
@@ -70,113 +67,154 @@ const ICON_PATHS: Record<MessageType, string> = {
 <style scoped>
 .t73-message-stack {
   position: fixed;
-  top: 20px;
-  left: 50%;
+  right: 20px;
+  bottom: 20px;
   z-index: var(--73-z-toast);
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-end;
   gap: 10px;
+  max-width: min(360px, calc(100vw - 40px));
   /* 容器不遮住下面的内容：只有提示条自己吃点击 */
   pointer-events: none;
-  transform: translateX(-50%);
 }
 
 .t73-message {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  max-width: min(560px, calc(100vw - 40px));
-  padding: 10px 14px;
-  border: 1px solid var(--73-border);
-  border-radius: var(--73-radius-control);
-  background: var(--73-surface-strong);
+  align-items: flex-start;
+  gap: 10px;
+  /* 宿主那条约多长的文案都占这么宽，短文案不至于缩成一小块 */
+  min-width: 220px;
+  max-width: min(360px, calc(100vw - 40px));
+  padding: 12px 16px;
+  border: 1px solid transparent;
+  border-radius: var(--73-radius-inner);
+  /* 底色是半透明的语气色，压在任意页面上都要读得清 —— 模糊是它可读性的前提 */
+  backdrop-filter: blur(var(--73-glass-blur));
+  -webkit-backdrop-filter: blur(var(--73-glass-blur));
   box-shadow: var(--73-shadow-panel);
-  color: var(--73-ink);
-  font-family: var(--73-font-family);
-  font-size: var(--73-font-size-body);
-  line-height: 1.5;
+  /* 底座把根元素定在 13px，提示条用正文大一号 */
+  font-size: var(--73-font-size-md);
+  word-break: break-word;
   pointer-events: auto;
 }
 
+/* 五档语气：软底 + 同色描边 + 深字。三件套都取令牌，这里不出现色值 */
 .t73-message--tone-success {
-  --t73-message-ink: var(--73-success-text);
+  background: var(--73-success-soft);
+  border-color: var(--73-success-line);
+  color: var(--73-success-text);
 }
 
 .t73-message--tone-warning {
-  --t73-message-ink: var(--73-warning-text);
+  background: var(--73-warning-soft);
+  border-color: var(--73-warning-line);
+  color: var(--73-warning-text);
 }
 
 .t73-message--tone-danger {
-  --t73-message-ink: var(--73-danger-text);
+  background: var(--73-danger-soft);
+  border-color: var(--73-danger-line);
+  color: var(--73-danger-text);
 }
 
 .t73-message--tone-info {
-  --t73-message-ink: var(--73-info-text);
+  background: var(--73-info-soft);
+  border-color: var(--73-info-line);
+  color: var(--73-info-text);
 }
 
 .t73-message--tone-neutral {
-  --t73-message-ink: var(--73-neutral-text);
-}
-
-.t73-message__icon {
-  display: inline-flex;
-  align-items: center;
-  flex: 0 0 auto;
-  width: 16px;
-  height: 16px;
-  color: var(--t73-message-ink);
-}
-
-.t73-message__icon svg {
-  width: 16px;
-  height: 16px;
+  background: var(--73-neutral-soft);
+  border-color: var(--73-neutral-line);
+  color: var(--73-neutral-text);
 }
 
 .t73-message__text {
+  flex: 1;
   min-width: 0;
-  word-break: break-word;
+  font-weight: var(--73-font-weight-bold);
 }
 
+/* 关闭按钮刻意不用 TButton：宿主那枚只是个继承语气色的裸 ×，没有底色、没有内边距。
+   换成 TButton 会带上自己的高度与悬停底，反而与宿主不是同一个东西。 */
 .t73-message__close {
   flex: 0 0 auto;
-  min-height: 22px;
-  height: 22px;
-  padding: 0 4px;
-  color: var(--73-ink-muted);
+  margin: -1px 0 0;
+  padding: 0 2px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.72;
+  transition: opacity var(--73-transition);
 }
 
-.t73-message__close svg {
-  width: 12px;
-  height: 12px;
+.t73-message__close:hover {
+  opacity: 1;
 }
 
-/* 进场从上方落下一点，与「通知」的语义一致；出场直接淡出 */
-.t73-message-enter-active,
+.t73-message__close:focus-visible {
+  outline: none;
+  border-radius: var(--73-radius-sm);
+  box-shadow: var(--73-focus-ring);
+}
+
+/* 进场从右侧带一点回弹地滑入（曲线与时长照抄宿主 toast.css 的 toastIn），
+   出场直接往下淡出；中间条目的补位也跟着走，不然删一条会跳。 */
+.t73-message-enter-active {
+  transition:
+    opacity 280ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    transform 280ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
 .t73-message-leave-active {
   transition:
-    opacity var(--73-transition),
-    transform var(--73-transition);
+    opacity 200ms ease,
+    transform 200ms ease;
 }
 
-.t73-message-enter-from,
+.t73-message-enter-from {
+  opacity: 0;
+  transform: translateX(40px) scale(0.9);
+}
+
 .t73-message-leave-to {
   opacity: 0;
-  transform: translateY(-8px);
+  transform: translateY(8px);
 }
 
-/* 移动端：贴到安全区下方，宽度几乎占满 */
+.t73-message-move {
+  transition: transform var(--73-transition);
+}
+
+/* 移动端：宿主把 toast 挪到安全区下方并撑满宽度，这里照做。
+   进场方向也跟着换成自上而下 —— 它现在是从上边缘掉下来的。 */
 @media (max-width: 640px) {
   .t73-message-stack {
     top: calc(12px + env(safe-area-inset-top, 0px));
     right: 12px;
+    bottom: auto;
     left: 12px;
-    transform: none;
+    align-items: stretch;
+    max-width: none;
   }
 
   .t73-message {
     width: 100%;
-    max-width: 100%;
+    min-width: 0;
+    max-width: none;
+  }
+
+  .t73-message-enter-from {
+    transform: translateY(-10px) scale(0.98);
+  }
+
+  .t73-message-leave-to {
+    transform: translateY(-8px);
   }
 }
 </style>

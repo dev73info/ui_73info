@@ -265,8 +265,12 @@ function toast(type: 'info' | 'success' | 'warning' | 'error'): void {
   TMessage[type](text, 2000)
 }
 
-function toastClosable(): void {
-  TMessage.open({ message: '手动关闭这条提示', type: 'info', duration: 0, closable: true })
+function toastPersistent(): void {
+  TMessage.open({ message: '这条不会自动消失，点 × 关掉', type: 'info', duration: 0 })
+}
+
+function toastWithoutClose(): void {
+  TMessage.info({ message: '这条没有关闭按钮，只能等它自己消失', duration: 2000, closable: false })
 }
 
 async function askConfirm(): Promise<void> {
@@ -829,12 +833,14 @@ const alertClosed = ref(false)
         <TButton variant="outline" tone="success" @click="toast('success')">success</TButton>
         <TButton variant="outline" tone="warning" @click="toast('warning')">warning</TButton>
         <TButton variant="outline" tone="danger" @click="toast('error')">error</TButton>
-        <TButton variant="outline" @click="toastClosable">不自动消失且有关闭按钮</TButton>
+        <TButton variant="outline" @click="toastPersistent">不自动消失（点 × 关）</TButton>
+        <TButton variant="outline" @click="toastWithoutClose">没有关闭按钮</TButton>
         <TButton variant="solid" tone="danger" @click="askConfirm">确认框（危险）</TButton>
         <TButton variant="solid" tone="accent" @click="askAlert">alert</TButton>
         <TButton variant="text" @click="TMessage.closeAll()">全部关掉</TButton>
       </div>
       <p class="hint">
+        提示条在右下角（窄屏挪到顶部通栏），语气只由色块体现，没有图标，默认带一枚 ×；
         连点几次「info」会看到最多同时 5 条，超出挤掉最旧的；
         确认框是模态的，连点两次会排队而不是叠在一起。
       </p>

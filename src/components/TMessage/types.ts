@@ -16,7 +16,12 @@ export interface MessageOptions {
   type?: MessageType
   /** 自动消失的毫秒数，默认 3000。传 `0` 表示不自动消失 */
   duration?: number
-  /** 是否显示关闭按钮，默认 `false` */
+  /**
+   * 是否显示关闭按钮，默认 `true`。
+   *
+   * 默认开着是因为宿主既有的 toast 一直带一枚 ×，迁移时不该凭空少掉一个出口；
+   * 确实不需要手动关闭时才传 `false`。
+   */
   closable?: boolean
   /** 同一条内容重复弹出时是否合并（后一条顶掉前一条），默认 `false` */
   group?: boolean

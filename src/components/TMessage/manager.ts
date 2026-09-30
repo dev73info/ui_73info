@@ -119,7 +119,7 @@ function openMessage(options: MessageOptions): MessageHandle {
     message: options.message,
     type,
     duration,
-    closable: options.closable ?? false,
+    closable: options.closable ?? true,
     group: options.group ?? false,
   }
   messages.push(item)

@@ -78,7 +78,8 @@ import 'ui_73info/alias.css'
   - 浮层 `TDialog` `TDropdown` `TDropdownMenu` `TDropdownItem` `TTooltip` `TPopover` `TScrollbar`
   - 数据 `TTable` `TTableColumn` `TPagination` `TDescriptions` `TDescriptionsItem`
   - 反馈 `TAlert`
-- **命令式 API**：`TMessage`（可堆叠提示）与 `TMessageBox`（模态确认框，带队列）。
+- **命令式 API**：`TMessage`（右下角色块提示，可堆叠、样子对齐宿主既有 toast）与
+  `TMessageBox`（模态确认框，带队列）。
 - `pnpm type-check` 通过；`pnpm dev`（端口 5180）可打开 playground 逐项人工验证。
 
 **`user-client` 里实际渲染过的 Element 组件，除两处外全部有对应物**：
