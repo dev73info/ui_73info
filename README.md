@@ -84,5 +84,10 @@ import 'ui_73info/alias.css'
 **`user-client` 里实际渲染过的 Element 组件，除两处外全部有对应物**：
 `el-select-v2` 的虚拟化（改为普通列表渲染）与 `ElConfigProvider`（没有 locale 层）。
 
-未实现：`user-client` 尚未接入本库、逐页迁移未开始；自动化视觉测试还没有；
-其余差距清单与理由见 [doc/架构.md](doc/架构.md) 第八节。
+**已接入 `user-client`**（2026-09-30）：link 依赖与 Vite 分块、样式引入顺序、
+按路由切主题（门户 / 开发者）都已完成并实测；第一个迁移页 `BadgeCenterView` 已迁完。
+
+未实现：`user-client` 其余页面尚未迁移（逐页推进，顺序见
+[doc/开发指南.md](doc/开发指南.md) 第六节）；自动化视觉测试还没有；
+`alias.css` 这个旧变量名桥接层**刻意还没引**（理由见
+[doc/架构.md](doc/架构.md) 第七节）；其余差距清单见同文件第八节。
