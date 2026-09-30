@@ -25,7 +25,6 @@ import {
 const THEMES: Array<{ value: ThemeName; label: string }> = [
   { value: 'portal', label: 'portal（门户，默认）' },
   { value: 'dev', label: 'dev（开发者）' },
-  { value: 'workbench', label: 'workbench（dev 的别名）' },
 ]
 
 const theme = ref<ThemeName>('portal')

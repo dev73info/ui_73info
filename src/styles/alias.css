@@ -3,13 +3,13 @@
    ============================================================================
 
    **这个文件是可选的，且只在迁移期需要。** 它让 user-client 里那些还没搬走的手写样式
-   （读 `--dev-*` / `--wb-*` / `--accent` / `--portal-*` 的几百处）继续工作，
+   （读 `--dev-*` / `--accent` / `--portal-*` 的几百处）继续工作，
    同时值的来源已经统一到 `tokens.css` 一处——改主色只改 `tokens.css`，旧代码跟着变。
    全部搬完之后整个文件连同旧的 `--el-*` 映射一起删掉。
 
    ## 用它之前必须知道的三件事
 
-   1. **必须在 `<html>` 上应用主题属性**（`data-73-theme="portal" | "dev" | "workbench"`）。
+   1. **必须在 `<html>` 上应用主题属性**（`data-73-theme="portal" | "dev"`）。
       原因见 `tokens.css` 顶部：自定义属性在声明它的元素上求值，而旧变量名广泛用于
       `:root` 作用域。把主题属性挂到内部 div 上时，只有读 `--73-*` 的新组件跟着变，
       这个兼容层不会生效。
@@ -18,13 +18,23 @@
       `--dev-*` 会被解析成门户侧的色值，**开发者页面会整片变色**。
       没准备好迁移就不要 import 它——`--dev-*` 仍然由 user-client 自己的
       `dev-base.css` 提供，一切照旧。
-   3. **`--profile-*` 不在桥接范围内。** 它是 `profile.css` 给 `.profile-page` 登记的
-      页面级色板（强调色 `#4f8cff`，比门户侧更亮），《设计规范》明确它不作为全局令牌，
-      所以它不进入主题层，继续留在 user-client。
+   3. **`--profile-*` 与 `--wb-*` 不在桥接范围内**，理由分别在下面两节。
 
-   顺带解决一处长期隐患：`--wb-*`（工作台外壳）与 `--dev-*` 的取值逐项相同，
-   源文件里靠注释提醒「两边必须一起改」，实际是两个命名空间各写了一遍。桥接之后
-   两者都指向同一组 `--73-*`，不再存在改一边漏一边的可能。
+   ## `--profile-*` 为什么不桥接
+
+   它是 `profile.css` 给 `.profile-page` 登记的页面级色板（强调色 `#4f8cff`，比门户侧更亮），
+   《设计规范》明确它不作为全局令牌，所以不进入主题层，继续留在 user-client。
+
+   ## `--wb-*` 刻意不在桥接范围内
+
+   `portal-workbench.css` 的 `--wb-*` 看着像「门户侧的开发者令牌」，但它**不是主题值**：
+   它是工作台外壳自己一套被冻结的结构值，目的是让外壳在两种模式下长得一模一样
+   （源文件注释：「同一套菜单在两种模式下被来回切换……必须长得一模一样」）。
+
+   如果把它桥接到 `--73-*`，它就变成了主题相关——将来 `--73-border` 一改，
+   外壳的描边只在 `dev` 模式下跟着变、`portal` 模式下不变，两边就分叉了。
+   所以这里不碰它，继续由 `portal-workbench.css` 的 `:root` 提供；等真正迁移那个外壳时，
+   连同它「结构冻结、状态色跟随模式」的需求一起处理。详见 doc/架构.md 第二节。
    ============================================================================ */
 
 /* ----------------------------------------------------------------------------
@@ -57,10 +67,9 @@
 }
 
 /* ----------------------------------------------------------------------------
-   开发者侧旧变量名：`dev-base.css` 的 `--dev-*` + `portal-workbench.css` 的 `--wb-*`
+   开发者侧旧变量名：`dev-base.css` 的 `--dev-*`
    ---------------------------------------------------------------------------- */
-[data-73-theme='dev'],
-[data-73-theme='workbench'] {
+[data-73-theme='dev'] {
   /* --- 色值 --- */
   --dev-bg: var(--73-bg);
   --dev-surface: var(--73-surface);
@@ -77,23 +86,10 @@
   --dev-scrollbar-thumb-hover: var(--73-scrollbar-thumb-hover);
 
   /* --- 尺寸档 ---
-     原来这两个文件各自写了一组 px（dev-base.css 的 --dev-radius-* 与
-     portal-workbench.css 的 --wb-radius-*），注释里互相提醒要一起改。现在同源。 */
+     dev-base.css 与 portal-workbench.css 各写过一组一样的 px，注释里互相提醒
+     「要一起改」。这里把开发者侧那组指到令牌；外壳那组见文件顶部「刻意不在桥接范围内」。 */
   --dev-radius-card: var(--73-radius-card);
   --dev-radius-inner: var(--73-radius-inner);
   --dev-radius-control: var(--73-radius-control);
   --dev-control-height: var(--73-control-height);
-
-  /* --- 工作台外壳（--wb-*）---
-     主色与冷灰三件套本来与 --dev-* 逐项同值，这里直接指向同一组令牌。 */
-  --wb-radius-card: var(--73-radius-card);
-  --wb-radius-item: var(--73-radius-inner);
-  --wb-radius-control: var(--73-radius-control);
-  --wb-control-height: var(--73-control-height);
-  --wb-accent: var(--73-accent);
-  --wb-accent-soft: var(--73-accent-soft);
-  --wb-accent-line: var(--73-accent-line);
-  --wb-line: var(--73-border);
-  --wb-ink-soft: var(--73-ink-soft);
-  --wb-shadow: var(--73-shadow-card);
 }

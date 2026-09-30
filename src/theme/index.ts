@@ -5,6 +5,14 @@
  * 所以「切主题」就是在根元素上换一个属性值——纯 CSS，没有 JS 重算，也没有
  * 「把样式表重新注入一遍」那种做法。这里只提供这个动作的封装与当前值的一份响应式镜像。
  *
+ * ## 只有两个主题
+ *
+ * `portal` 与 `dev`，对应 `user-client/doc/设计规范.md` 第一节登记的两套视觉体系。
+ * 这里**刻意没有**第三个「工作台外壳」主题：`--wb-*` 只定义 10 个令牌（尺寸、主色三件套、
+ * 描边、弱化墨色、阴影），背景与表面沿用门户侧，状态色跟随当前模式。把它建模成
+ * 独立主题会在门户模式下渲染出开发者侧的青与金。完整推理见 `tokens.css` 顶部与
+ * `doc/架构.md` 第二节。
+ *
  * ## 为什么属性必须落在 `<html>` 上
  *
  * CSS 自定义属性在**声明它的那个元素**上求值，后代拿到的是已经算好的结果。组件自身读
@@ -13,41 +21,21 @@
  * 细节见 `src/styles/tokens.css` 与 `src/styles/alias.css` 顶部。
  */
 
-import { computed, readonly, ref, type Ref } from 'vue'
+import { readonly, ref, type Ref } from 'vue'
 
 /** 承载主题的 HTML 属性名 */
 export const THEME_ATTRIBUTE = 'data-73-theme'
 
-/**
- * 可选主题名。
- *
- * `workbench`（门户工作台外壳）是 `dev` 的**别名**：它的取值与 `dev` 逐项相同
- * （见 `tokens.css` 第二节说明），保留这个名字只是为了让调用方能按「页面归属」而不是
- * 「实际色值」来表达意图。它**不是**第三套色值。
- */
-export const THEMES = ['portal', 'dev', 'workbench'] as const
+/** 可选主题名。只有两个，理由见文件顶部。 */
+export const THEMES = ['portal', 'dev'] as const
 
 export type ThemeName = (typeof THEMES)[number]
-
-/** 归一后的主题：别名被折叠掉之后的实际色值来源 */
-export type ResolvedTheme = 'portal' | 'dev'
 
 /** 不写属性时的主题（也是 `tokens.css` 里 `:root` 给的那一套） */
 export const DEFAULT_THEME: ThemeName = 'portal'
 
-const RESOLVED_THEMES: Record<ThemeName, ResolvedTheme> = {
-  portal: 'portal',
-  dev: 'dev',
-  workbench: 'dev',
-}
-
 export function isThemeName(value: unknown): value is ThemeName {
   return typeof value === 'string' && (THEMES as readonly string[]).includes(value)
-}
-
-/** 把主题名折叠到实际色值来源，用于判断「这两个名字是不是同一套外观」 */
-export function resolveTheme(theme: ThemeName): ResolvedTheme {
-  return RESOLVED_THEMES[theme]
 }
 
 function rootElement(): HTMLElement | null {
@@ -104,14 +92,6 @@ export function syncThemeFromDOM(): ThemeName {
  * 返回的是只读镜像，改主题一律走 `applyTheme`——两处都能写会出现「镜像说 dev、
  * DOM 上还是 portal」的状态。
  */
-export function useTheme(): {
-  theme: Readonly<Ref<ThemeName>>
-  resolved: Readonly<Ref<ResolvedTheme>>
-} {
-  return {
-    theme: readonly(currentTheme) as Readonly<Ref<ThemeName>>,
-    resolved: readonly(computed(() => resolveTheme(currentTheme.value))) as Readonly<
-      Ref<ResolvedTheme>
-    >,
-  }
+export function useTheme(): { theme: Readonly<Ref<ThemeName>> } {
+  return { theme: readonly(currentTheme) as Readonly<Ref<ThemeName>> }
 }

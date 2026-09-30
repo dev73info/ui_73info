@@ -64,7 +64,7 @@ import 'ui_73info/alias.css'
 
 ## 当前进度
 
-已实现：令牌层（`portal` / `dev` 两套主题 + `workbench` 别名）、行为原语、
+已实现：令牌层（`portal` / `dev` 两套主题）、行为原语、
 `TButton` / `TIcon` / `TTag` / `TCard` / `TInput` / `TForm`+`TFormItem` / `TDialog`，
 以及 `pnpm dev` 可打开的 playground。
 
