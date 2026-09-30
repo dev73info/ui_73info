@@ -29,6 +29,7 @@ const props = withDefaults(defineProps<TButtonProps>(), {
   disabled: false,
   loading: false,
   block: false,
+  iconOnly: false,
   as: 'button',
 })
 
@@ -45,6 +46,7 @@ const classes = computed(() => [
   `t73-button--${props.size satisfies ComponentSize}`,
   {
     't73-button--block': props.block,
+    't73-button--icon-only': props.iconOnly,
     't73-button--loading': props.loading,
     't73-button--disabled': props.disabled,
   },
@@ -122,8 +124,32 @@ function onClick(event: MouseEvent): void {
   font-size: var(--73-font-size-sm);
 }
 
+/* 只放图标：正方形。宽度取控件高度，左右内边距归零——
+   留着 16px 内边距的话，「16px 的图标 + 32px 内边距」会撑成 48px 宽的长方形。 */
+.t73-button--icon-only {
+  width: var(--73-control-height);
+  padding: 0;
+}
+
+.t73-button--icon-only.t73-button--sm {
+  width: var(--73-control-height-sm);
+}
+
+/* 放在 `--block` **之前**：两个都写时撑满宽度优先（见 types.ts 的说明）。
+   写在后面会把 `width: 100%` 覆盖成正方形。 */
 .t73-button--block {
   width: 100%;
+}
+
+/* 触屏档：图标按钮撑到 44px 见方。36px 低于设计规范第六节的触摸目标下限，
+   在组件里补齐，省得每页再写一条媒体查询。与 TCheckbox / TSwitch 同口径。 */
+@media (max-width: 640px) {
+  .t73-button--icon-only {
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+    min-height: 44px;
+  }
 }
 
 .t73-button--disabled {

@@ -38,6 +38,20 @@ export interface TButtonProps {
   /** 撑满父容器宽度 */
   block?: boolean
   /**
+   * 只放图标：正方形、去掉左右内边距。
+   *
+   * 这是仓库里反复出现的一个形状——工作台各菜单页顶部的「刷新」按钮、
+   * 卡头右侧的图标动作都是它（`.wb-toolbar__icon-btn` / `.dev-toolbar__icon-btn`
+   * 在 user-client 里有十几处）。不给这个属性时，调用方只能自己补
+   * `width / padding` 两条 CSS，等于把同一个形状在每页重写一遍。
+   *
+   * **必须同时给 `aria-label`**：按钮里没有文字，读屏只能靠它。
+   * 组件不去校验（也校验不了插槽里到底放的是什么），但这是硬要求。
+   *
+   * 与 `block` 同时给时以 `block` 为准（撑满宽度优先）。
+   */
+  iconOnly?: boolean
+  /**
    * 渲染成什么元素/组件，默认 `button`。
    *
    * 传 `RouterLink` 可以当链接按钮用——user-client 里 `.dev-btn` 本来就大量挂在

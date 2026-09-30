@@ -336,6 +336,56 @@ const alertClosed = ref(false)
       <hr class="divider" />
 
       <div class="row">
+        <span class="row__label">icon-only</span>
+        <TButton icon-only aria-label="刷新" @click="TMessage.info('点到了图标按钮')">
+          <TIcon :size="14"><svg viewBox="0 0 16 16">
+            <path
+              d="M13 8A5 5 0 113.9 4.7"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.7"
+              stroke-linecap="round"
+            />
+            <path
+              d="M13 3v2.6h-2.6"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.7"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg></TIcon>
+        </TButton>
+        <TButton icon-only size="sm" aria-label="小尺寸刷新">
+          <TIcon :size="12"><svg viewBox="0 0 16 16">
+            <path
+              d="M13 8A5 5 0 113.9 4.7"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.9"
+              stroke-linecap="round"
+            />
+          </svg></TIcon>
+        </TButton>
+        <TButton icon-only tone="accent" variant="solid" aria-label="强调档图标按钮">
+          <TIcon :size="14"><svg viewBox="0 0 16 16">
+            <path
+              d="M8 4v8M4 8h8"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+            />
+          </svg></TIcon>
+        </TButton>
+        <span class="hint-inline">
+          正方形：36px（md）/ 28px（sm），触屏档撑到 44px。必须同时给 <code>aria-label</code>
+        </span>
+      </div>
+
+      <hr class="divider" />
+
+      <div class="row">
         <span class="row__label">as= 换元素</span>
         <TButton as="a" href="#top" variant="outline">当链接用的按钮</TButton>
       </div>
@@ -835,6 +885,19 @@ const alertClosed = ref(false)
   min-width: 96px;
   color: var(--73-ink-muted);
   font-size: var(--73-font-size-sm);
+}
+
+/* 行内说明：与 .hint 同一档字号，但不另起一行 */
+.hint-inline {
+  color: var(--73-ink-muted);
+  font-size: var(--73-font-size-sm);
+}
+
+.hint-inline code {
+  padding: 1px 4px;
+  border-radius: var(--73-radius-check);
+  background: var(--73-inset);
+  font-family: var(--73-font-family-mono);
 }
 
 .grid {
