@@ -33,6 +33,7 @@ import {
 defineOptions({ name: 'TFormItem' })
 
 const props = withDefaults(defineProps<TFormItemProps>(), {
+  prop: undefined,
   label: undefined,
   rules: undefined,
   required: undefined,
@@ -67,10 +68,14 @@ const errorMessage = ref('')
 const inputId = useId()
 const errorId = `${inputId}-error`
 
+/** 参与校验的路径。没有它这一项就只做排版，不参与校验（见 `TFormItemProps.prop`） */
+const fieldProp = computed(() => props.prop)
+
 /** 表单级规则在前、本项规则在后？不，本项优先——本项写的是更具体的约束。 */
 const mergedRules = computed<Rules>(() => {
-  const fromForm = form.rules[props.prop] ?? []
   const own = props.rules ?? []
+  if (!fieldProp.value) return own
+  const fromForm = form.rules[fieldProp.value] ?? []
   return own.length > 0 ? [...own, ...fromForm] : fromForm
 })
 
@@ -100,6 +105,9 @@ function hasError(): boolean {
 }
 
 async function doValidate(trigger: ValidateTrigger): Promise<boolean> {
+  // 没有 `prop` 的纯排版项不参与校验：它没有可校验的值
+  if (!fieldProp.value) return true
+
   const applicable = mergedRules.value.filter((rule) => ruleMatchesTrigger(rule, trigger))
 
   // 该时机没有规则：既不做校验，也**不清掉已有错误**。
@@ -110,8 +118,8 @@ async function doValidate(trigger: ValidateTrigger): Promise<boolean> {
   const token = validationToken
   state.value = 'validating'
 
-  const value = getValueByPath(form.model, props.prop)
-  const message = await runRules(value, applicable, { model: form.model, field: props.prop })
+  const value = getValueByPath(form.model, fieldProp.value)
+  const message = await runRules(value, applicable, { model: form.model, field: fieldProp.value })
 
   if (token !== validationToken) return !hasError()
 
@@ -138,16 +146,22 @@ function notify(trigger: ValidateTrigger): void {
   void doValidate(trigger)
 }
 
-const field: FormField = {
-  prop: props.prop,
-  getRules: () => mergedRules.value,
-  validate: doValidate,
-  clearValidate,
-  getElement: () => rootRef.value,
-}
+const field: FormField | null = fieldProp.value
+  ? {
+      prop: fieldProp.value,
+      getRules: () => mergedRules.value,
+      validate: doValidate,
+      clearValidate,
+      getElement: () => rootRef.value,
+    }
+  : null
 
-onMounted(() => form.addField(field))
-onScopeDispose(() => form.removeField(field))
+onMounted(() => {
+  if (field) form.addField(field)
+})
+onScopeDispose(() => {
+  if (field) form.removeField(field)
+})
 
 provide<FormItemContext>(FORM_ITEM_CONTEXT, {
   inputId,

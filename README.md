@@ -12,13 +12,13 @@
 
 ```
 src/
-  index.ts            出口：组件、主题运行时、行为原语、公共类型
+  index.ts            出口：组件、命令式 API、主题运行时、行为原语、公共类型
   styles/
     tokens.css        令牌层，唯一的色值来源
     reset.css         样式底座，只作用于 .t73 类名空间
     alias.css         迁移兼容层（旧变量名 → --73-*），按需引入
     index.css         样式入口（只含 tokens + reset），对外是 ui_73info/styles.css
-  primitives/         行为原语：焦点陷阱、关闭行为、滚动锁定、稳定 id
+  primitives/         行为原语：定位引擎、浮层开合、列表导航、焦点陷阱、关闭行为、滚动锁定、稳定 id
   components/         组件，每个一个目录
   theme/              主题运行时
 playground/           pnpm dev 起的预览页（端口 5180）
@@ -39,10 +39,11 @@ pnpm add ui_73info@link:../ui_73info
 ```ts
 // main.ts —— 顺序有语义，令牌要早于页面样式
 import 'ui_73info/styles.css'
-import { applyTheme } from 'ui_73info'
+import { applyTheme, TMessage } from 'ui_73info'
 import './styles/user.css'
 
-applyTheme('dev') // 或 'portal'
+applyTheme('dev')            // 或 'portal'
+TMessage.success('已保存')    // 命令式提示，不占模板
 ```
 
 > 子路径**必须带 `.css` 后缀**。宿主的 `vite/client` 类型里只有
@@ -64,10 +65,24 @@ import 'ui_73info/alias.css'
 
 ## 当前进度
 
-已实现：令牌层（`portal` / `dev` 两套主题）、行为原语、
-`TButton` / `TIcon` / `TTag` / `TCard` / `TInput` / `TForm`+`TFormItem` / `TDialog`，
-以及 `pnpm dev` 可打开的 playground。
+已实现：
 
-未实现：`TSelect`（需要独立的定位引擎，安排在第二批）、`TTable` / `TPagination` /
-`TDropdown` / `TDatePicker` 等；`user-client` 尚未接入本库。清单与理由见
-[doc/架构.md](doc/架构.md) 最后一节。
+- **令牌层**：`portal` / `dev` 两套主题，加上与主题无关的尺寸、圆角、字号、层级档位。
+- **行为原语**：`useFloating`（定位引擎）、`useOverlay`（开合）、`useListbox`（列表键盘导航）、
+  `useFocusTrap`、`useDismissable`、`useBodyScrollLock`、`useId`。
+- **组件（23 个目录 / 32 个模板组件）**：
+  - 基础 `TButton` `TIcon` `TTag` `TCard` `TEmpty`
+  - 表单 `TInput`（含多行）`TInputNumber` `TSelect` `TOption` `TOptionGroup`
+    `TCheckbox` `TCheckboxGroup` `TRadio` `TRadioGroup` `TRadioButton`
+    `TSwitch` `TDatePicker` `TForm` `TFormItem`
+  - 浮层 `TDialog` `TDropdown` `TDropdownMenu` `TDropdownItem` `TTooltip` `TPopover` `TScrollbar`
+  - 数据 `TTable` `TTableColumn` `TPagination` `TDescriptions` `TDescriptionsItem`
+  - 反馈 `TAlert`
+- **命令式 API**：`TMessage`（可堆叠提示）与 `TMessageBox`（模态确认框，带队列）。
+- `pnpm type-check` 通过；`pnpm dev`（端口 5180）可打开 playground 逐项人工验证。
+
+**`user-client` 里实际渲染过的 Element 组件，除两处外全部有对应物**：
+`el-select-v2` 的虚拟化（改为普通列表渲染）与 `ElConfigProvider`（没有 locale 层）。
+
+未实现：`user-client` 尚未接入本库、逐页迁移未开始；自动化视觉测试还没有；
+其余差距清单与理由见 [doc/架构.md](doc/架构.md) 第八节。

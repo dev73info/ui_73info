@@ -18,3 +18,18 @@ export { useDismissable, dismissableLayerCount } from './useDismissable'
 export type { DismissableOptions, DismissReason } from './useDismissable'
 export { useFocusTrap, getFocusableElements, isFocusable } from './useFocusTrap'
 export type { FocusTrapOptions } from './useFocusTrap'
+export { useFloating } from './useFloating'
+export type { FloatingOptions, FloatingReturn, Placement } from './useFloating'
+export { useOverlay } from './useOverlay'
+export type { OverlayCloseReason, OverlayOptions, OverlayReturn, OverlayTrigger } from './useOverlay'
+export {
+  LISTBOX_CONTEXT,
+  createListbox,
+  findByTypeahead,
+  handleListboxKeydown,
+  provideListbox,
+  resetTypeahead,
+  typeahead,
+  useListboxContext,
+} from './useListbox'
+export type { ListboxContext, ListboxItemHandle } from './useListbox'

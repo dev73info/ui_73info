@@ -2,10 +2,23 @@ import type { ComponentSize } from '../../types/common'
 
 export type TInputType = 'text' | 'password' | 'email' | 'number' | 'search' | 'tel' | 'url'
 
+/**
+ * 多行输入的自适应高度。
+ *
+ * - `true` → 按内容长高，最小 2 行
+ * - `false` → 固定 `rows` 行
+ * - 对象 → 单独给上下限
+ */
+export type TInputAutosize = boolean | { minRows?: number; maxRows?: number }
+
 export interface TInputProps {
   /** 值。**始终以字符串发出**（`update:modelValue`），与原生 `<input>` 一致。 */
   modelValue?: string | number | null
-  type?: TInputType
+  /**
+   * 控件类型。`'textarea'` 会换成多行输入框
+   * （接替 `<el-input type="textarea">`，源页面里需求描述、发布表单那些用法）。
+   */
+  type?: TInputType | 'textarea'
   size?: ComponentSize
   placeholder?: string
   disabled?: boolean
@@ -28,6 +41,12 @@ export interface TInputProps {
   /** 无可见标签时的无障碍名称 */
   ariaLabel?: string
   autofocus?: boolean
+  /** 多行时的初始行数，默认 3 */
+  rows?: number
+  /** 多行时的高度策略，默认 `{ minRows: 2, maxRows: 8 }` */
+  autosize?: TInputAutosize
+  /** 多行时右下角是否可手动拖拽改变大小，默认 `'vertical'` */
+  resize?: 'none' | 'vertical' | 'both'
 }
 
 export interface TInputEmits {

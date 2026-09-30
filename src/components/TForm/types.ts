@@ -48,10 +48,14 @@ export interface TFormInstance {
 
 export interface TFormItemProps {
   /**
-   * 字段路径，如 `'user.name'`。**必填**——没有它表单项无法从 `model` 取值，
-   * 也无法和 `TForm` 的 `rules` 表对上。
+   * 字段路径，如 `'user.name'`。
+   *
+   * **参与校验的项必须给** —— 没有它表单项无法从 `model` 取值，
+   * 也无法和 `TForm` 的 `rules` 表对上，于是它**不做任何校验**（当成一个纯排版项）。
+   * 这个宽松档是给「一组控件的分组标签」用的：那种项只有一个可见标题，
+   * 校验发生在组内各个真正的字段上。
    */
-  prop: string
+  prop?: string
   /** 标签文字。不传则不渲染标签行。 */
   label?: string
   /** 本项自己的规则，会和 `TForm` 上 `rules[prop]` 的内容合并（本项在前） */

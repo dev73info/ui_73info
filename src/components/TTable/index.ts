@@ -1,0 +1,5 @@
+export { default as TTable } from './TTable.vue'
+export { default as TTableColumn } from './TTableColumn.vue'
+export { TABLE_CONTEXT } from './context'
+export type { RegisteredColumn, TableCellScope, TableContext } from './context'
+export type { TTableColumnEmits, TTableColumnProps, TTableProps } from './types'

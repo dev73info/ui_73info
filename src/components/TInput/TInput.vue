@@ -17,7 +17,7 @@
  * 与原生 `<input>` 一致，`update:modelValue` **总是发出字符串**。
  * 需要数字语义请在外面转，或等 `TInputNumber`（未在第一批范围内）。
  */
-import { computed, inject, ref, useAttrs, useId } from 'vue'
+import { computed, inject, nextTick, onMounted, onScopeDispose, ref, useAttrs, useId, watch } from 'vue'
 import type { ComponentSize } from '../../types/common'
 import { FORM_ITEM_CONTEXT } from '../TForm/context'
 import type { TInputEmits, TInputProps, TInputType } from './types'
@@ -40,6 +40,9 @@ const props = withDefaults(defineProps<TInputProps>(), {
   id: undefined,
   ariaLabel: undefined,
   autofocus: false,
+  rows: 3,
+  autosize: () => ({ minRows: 2, maxRows: 8 }),
+  resize: 'vertical',
 })
 
 const emit = defineEmits<TInputEmits>()
@@ -50,7 +53,15 @@ const item = inject(FORM_ITEM_CONTEXT, null)
 const fallbackId = useId()
 const inputId = computed(() => props.id ?? item?.inputId ?? fallbackId)
 const inputRef = ref<HTMLInputElement | null>(null)
+const textareaRef = ref<HTMLTextAreaElement | null>(null)
 const focused = ref(false)
+
+const isTextarea = computed(() => props.type === 'textarea')
+
+/** 单行分支的 `type`。多行时这个值用不上，回落到 `'text'` 只为让类型收敛 */
+const nativeType = computed<TInputType>(() =>
+  props.type === 'textarea' ? 'text' : props.type,
+)
 
 const isDisabled = computed(() => props.disabled || (item?.disabled.value ?? false))
 const size = computed<ComponentSize>(() => props.size ?? item?.size.value ?? 'md')
@@ -71,10 +82,11 @@ const describedBy = computed(() =>
 )
 
 function onInput(event: Event): void {
-  const target = event.target as HTMLInputElement
+  const target = event.target as HTMLInputElement | HTMLTextAreaElement
   emit('update:modelValue', target.value)
   emit('input', target.value)
   item?.notify('change')
+  if (isTextarea.value) syncTextareaHeight()
 }
 
 function onChange(event: Event): void {
@@ -103,13 +115,68 @@ function clear(): void {
   item?.notify('change')
   // 清除后把焦点留在输入框，否则用户要再点一次才能继续输入
   inputRef.value?.focus()
+  textareaRef.value?.focus()
 }
+
+/* ---------- 多行：自适应高度 ---------- */
+
+let autosizeObserver: ResizeObserver | undefined
+
+/**
+ * 把 `height` 设成内容高度。
+ *
+ * 关键顺序是**先归零再量**：不归零的话内容变少时 `scrollHeight` 会停在原来的高度上，
+ * 框只会越长越高，删字也不缩回去。上下内边距要自己加上——`scrollHeight` 不含它。
+ */
+function syncTextareaHeight(): void {
+  const el = textareaRef.value
+  if (!el || !isTextarea.value || props.autosize === false) return
+
+  const options = typeof props.autosize === 'object' ? props.autosize : {}
+  const style = window.getComputedStyle(el)
+  const lineHeight = Number.parseFloat(style.lineHeight) || 20
+  const padding = Number.parseFloat(style.paddingTop) + Number.parseFloat(style.paddingBottom)
+  const border = Number.parseFloat(style.borderTopWidth) + Number.parseFloat(style.borderBottomWidth)
+
+  const minRows = options.minRows ?? props.rows
+  const min = minRows * lineHeight + padding + border
+  const max = options.maxRows ? options.maxRows * lineHeight + padding + border : Number.POSITIVE_INFINITY
+
+  el.style.height = 'auto'
+  el.style.height = `${Math.min(Math.max(el.scrollHeight + border, min), max)}px`
+  // 到上限之后由浏览器滚，不要让它继续长
+  el.style.overflowY = el.scrollHeight + border > max ? 'auto' : 'hidden'
+}
+
+watch(
+  () => [props.modelValue, props.autosize, props.rows] as const,
+  () => {
+    void nextTick(syncTextareaHeight)
+  },
+)
+
+/**
+ * 宽度变化也要重算：文字换行位置变了，行数就变了。
+ * 只在 `maxWidth` 之类的约束下才会看到差别，但少了它就会「拉窄窗口后框里留一片空白」。
+ */
+onMounted(() => {
+  syncTextareaHeight()
+  if (typeof ResizeObserver === 'undefined' || !isTextarea.value) return
+  autosizeObserver = new ResizeObserver(() => syncTextareaHeight())
+  if (textareaRef.value?.parentElement) autosizeObserver.observe(textareaRef.value.parentElement)
+})
+
+onScopeDispose(() => {
+  autosizeObserver?.disconnect()
+  autosizeObserver = undefined
+})
 
 /** 供外面（如搜索框的快捷键）聚焦用 */
 defineExpose({
-  focus: () => inputRef.value?.focus(),
-  blur: () => inputRef.value?.blur(),
+  focus: () => (textareaRef.value ?? inputRef.value)?.focus(),
+  blur: () => (textareaRef.value ?? inputRef.value)?.blur(),
   inputRef,
+  textareaRef,
 })
 </script>
 
@@ -122,17 +189,43 @@ defineExpose({
       't73-input--invalid': isInvalid,
       't73-input--disabled': isDisabled,
       't73-input--focused': focused,
+      't73-input--textarea': isTextarea,
     }"
   >
     <span v-if="$slots.prefix" class="t73-input__affix t73-input__affix--prefix">
       <slot name="prefix" />
     </span>
 
+    <textarea
+      v-if="isTextarea"
+      ref="textareaRef"
+      class="t73-input__control t73-input__control--textarea"
+      :id="inputId"
+      :value="currentValue"
+      :placeholder="placeholder"
+      :disabled="isDisabled"
+      :readonly="readonly"
+      :maxlength="maxlength"
+      :name="name"
+      :rows="autosize === false ? rows : undefined"
+      :style="{ resize }"
+      :aria-label="ariaLabel"
+      :aria-invalid="isInvalid ? 'true' : undefined"
+      :aria-describedby="describedBy"
+      :autofocus="autofocus"
+      @input="onInput"
+      @change="onChange"
+      @focus="onFocus"
+      @blur="onBlur"
+      @keydown="onKeydown"
+    />
+
     <input
+      v-else
       ref="inputRef"
       class="t73-input__control"
       :id="inputId"
-      :type="type satisfies TInputType"
+      :type="nativeType"
       :value="currentValue"
       :placeholder="placeholder"
       :disabled="isDisabled"
@@ -212,6 +305,32 @@ defineExpose({
 
 .t73-input--sm .t73-input__control {
   font-size: var(--73-font-size-sm);
+}
+
+/* --- 多行 ---
+   容器改成顶对齐并放松高度：`height` 由 `syncTextareaHeight` 按内容算出来，
+   底座给的那个固定 36px 会让多行框永远只有一行高。 */
+.t73-input--textarea {
+  align-items: flex-start;
+  height: auto;
+  min-height: var(--73-control-height);
+  padding: 8px 12px;
+}
+
+.t73-input__control--textarea {
+  height: auto;
+  min-height: 20px;
+  /* 内部多行文本：不换行到外面，也不让滚动条常驻（自适应时它是隐藏的） */
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  /* 行高显式声明：自适应算法按它算行数，继承来的值在不同页面上不一样 */
+  line-height: 1.6;
+}
+
+.t73-input--textarea .t73-input__count {
+  /* 计数贴在右上角，别跟着文本基线跑 */
+  align-self: flex-start;
+  padding-top: 2px;
 }
 
 .t73-input__control::placeholder {

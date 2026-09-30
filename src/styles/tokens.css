@@ -116,10 +116,96 @@
      焦点环用强调线的颜色，不再另造一个透明蓝。 */
   --73-glass-blur: 12px;
   --73-focus-ring: 0 0 0 3px var(--73-accent-line);
+
+  /* --- 浮层（下拉面板、气泡、日期面板、提示）---
+     面板圆角 12px 与投影「0 18px 36px」来自 `.dev-resource-action-menu.el-popper`
+     与 `.requirement-action-menu.el-popper` 两处（两处的圆角与偏移完全一致，只有
+     投影的色相不同，那一项按主题给）。菜单内边距 6px、菜单项圆角 8px 同源。
+     菜单项高度取控件档 36px：仓库里 dev-resource 是 34px、profile 是 36px，
+     收敛成控件档，避免同一个菜单在两种体系下差 2px。 */
+  --73-radius-panel: 12px;
+  --73-radius-menu-item: 8px;
+  --73-panel-gap: 4px;
+  --73-panel-padding: 6px;
+  --73-panel-min-width: 112px;
+
+  /* --- 表格 ---
+     各档的**公式**两套主题相同，基色随主题走，所以取值统一放在下面第 2 节。 */
+
+  /* --- 开关 --- */
+  --73-switch-width: 44px;
+  --73-switch-height: 24px;
+  --73-switch-knob: 18px;
+
+  /* --- 复选框与单选 ---
+     方框 16px、圆形 16px；命中区靠外层 padding 撑到 44px（触屏档），
+     方框本身不做大——16px 是这个仓库里标签与表单的既有口径。
+     方框圆角 5px 是**本库新增的一档**：已有的 8/10/12 三档都大于 16px 方框好看的范围
+     （8px 已经接近正圆），而仓库里没有登记过更小的一档，所以在这里补一个最小档，
+     不要在组件里就地写一个 px。 */
+  --73-check-size: 16px;
+  --73-radius-check: 5px;
 }
 
 /* ============================================================================
-   2. 主题：portal（默认）
+   2. 跨主题派生档位（公式固定，基色随主题）
+   ----------------------------------------------------------------------------
+   这一节的表达式两套主题**完全相同**，只是引用的基色（`--73-bg` / `--73-accent`
+   / `--73-info`）在哪个主题下取值不同，所以写一次即可。
+
+   选择器带 `[data-73-theme]`：这样把主题属性挂在子树（而不是 `<html>`）上时，
+   这些派生值也在**挂属性的那个元素**上求值，跟着子树一起变——第 1 节那一批
+   与主题无关的令牌可以直接继承，但这一批读的是主题色，必须自己在场求值。
+
+   每个公式都能追到源文件，且刻意选成「在 dev 主题下正好等于源文件登记的字面量」，
+   这样搬迁时不会出现「同一张表在两种模式下深浅不一」：
+
+   | 令牌 | 公式 | dev 下算出来的值 | 源文件登记值 |
+   | --- | --- | --- | --- |
+   | `--73-table-header-bg` | 90% `--73-bg` + 10% `--73-surface-strong` | `#f2f5fb` | `.dev-table` 的 `--el-table-header-bg-color` |
+   | `--73-table-stripe` | 62% `--73-bg` + 38% `--73-surface-strong` | `#f6f8fd` | `--el-fill-color-lighter` |
+   | `--73-table-row-hover` | 5% `--73-accent` + 95% `--73-surface-strong` | `#f4f6fd` | `.dev-table` 的 `--el-table-row-hover-bg-color` |
+
+   `.dev-table` 的注释里说明过这几档为什么必须是**合成后的不透明值**：Element 的固定列
+   靠 `background: inherit` 取行底色，半透明底色会让横向滚动的内容从固定列下透出来。
+   这里沿用同一条结论。
+   ============================================================================ */
+:root,
+[data-73-theme] {
+  --73-table-header-bg: color-mix(in srgb, var(--73-bg) 90%, var(--73-surface-strong));
+  --73-table-stripe: color-mix(in srgb, var(--73-bg) 62%, var(--73-surface-strong));
+  --73-table-row-hover: color-mix(in srgb, var(--73-accent) 5%, var(--73-surface-strong));
+  --73-table-disabled-bg: color-mix(in srgb, var(--73-bg) 62%, var(--73-surface-strong));
+
+  /* 分页器按钮底色：dev-base.css 登记的是 rgba(241,244,251,.9)，压在白卡上等于
+     90% `--73-bg` + 10% 白，与表头底色同值——这里直接复用表头那一档，不另起一个公式。 */
+  --73-pager-button-bg: var(--73-table-header-bg);
+  --73-pager-button-disabled-bg: var(--73-table-disabled-bg);
+
+  /* 信息色的三件套：源文件只登记了 `--73-info` 本体（灰），另外两档与本文件其余
+     状态色同口径——软底 12%、描边 32%。 */
+  --73-info-soft: color-mix(in srgb, var(--73-info) 12%, transparent);
+  --73-info-line: color-mix(in srgb, var(--73-info) 32%, transparent);
+  --73-info-text: var(--73-info);
+
+  /* 中性色的三件套：用于「无强调语义」的提示与标签（`.dev-chip--muted` 那一档）。 */
+  --73-neutral-soft: color-mix(in srgb, var(--73-ink-placeholder) 12%, transparent);
+  --73-neutral-line: var(--73-border);
+  --73-neutral-text: var(--73-ink-muted);
+
+  /* 开关轨道（关闭态）与复选框描边共用：两个都是「未选中的控件边界」，
+     源文件没有为它们单独登记色值，取体系里的描边档。 */
+  --73-track: var(--73-border);
+
+  /* 浮层提示（tooltip）：深底浅字。仓库里没有登记过这一档
+     （`<el-tooltip>` 用量为 0），按「正文墨色的 92%」从已有基色算，
+     两套主题各自得到符合自身墨色的一支深底。 */
+  --73-tooltip-bg: color-mix(in srgb, var(--73-ink) 92%, transparent);
+  --73-tooltip-ink: var(--73-ink-inverse);
+}
+
+/* ============================================================================
+   3. 主题：portal（默认）
    ----------------------------------------------------------------------------
    色值来源：
    - user-client/src/styles/resource-core.css 的 `:root`（--bg-deep / --card-bg / --accent …）
@@ -193,6 +279,8 @@
   --73-shadow-card-hover: 0 20px 44px rgba(71, 85, 105, 0.13); /* --portal-shadow-hover */
   --73-shadow-control: 0 10px 22px rgba(31, 74, 209, 0.22); /* 主按钮悬浮，同 dev */
   --73-shadow-dialog: 0 20px 48px rgba(30, 64, 175, 0.16);
+  /* 浮层投影取 profile.css 的 `.requirement-action-menu.el-popper`（门户体系的菜单）。 */
+  --73-shadow-panel: 0 18px 36px rgba(15, 23, 42, 0.12);
   --73-dialog-veil: rgba(15, 23, 42, 0.16); /* modal.css 的 .modal-wrap 遮罩 */
 
   /* --- 字体 ---
@@ -202,7 +290,7 @@
 }
 
 /* ============================================================================
-   3. 主题：dev
+   4. 主题：dev
    ----------------------------------------------------------------------------
    色值来源：user-client/src/styles/dev-base.css 的 `:root`（--dev-*）。
    工作台外壳 `portal-workbench.css` 的 `--wb-*` 与这里的对应值相同，由 alias.css
@@ -279,6 +367,8 @@
   --73-shadow-card-hover: 0 20px 44px rgba(71, 85, 105, 0.1);
   --73-shadow-control: 0 10px 22px rgba(31, 74, 209, 0.22); /* .dev-btn--primary:hover */
   --73-shadow-dialog: 0 20px 48px rgba(30, 64, 175, 0.16);
+  /* 浮层投影取 dev-resource.css 的 `.dev-resource-action-menu.el-popper`（开发者体系的菜单）。 */
+  --73-shadow-panel: 0 18px 36px rgba(71, 85, 105, 0.16);
   --73-dialog-veil: rgba(15, 23, 42, 0.16);
 
   /* --- 字体 ---

@@ -1,0 +1,5 @@
+export { default as TDescriptions } from './TDescriptions.vue'
+export { default as TDescriptionsItem } from './TDescriptionsItem.vue'
+export { DESCRIPTIONS_CONTEXT } from './context'
+export type { DescriptionsContext } from './context'
+export type { TDescriptionsItemProps, TDescriptionsProps } from './types'
