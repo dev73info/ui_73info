@@ -2,8 +2,6 @@
  * TDropdown 的属性与事件
  */
 
-import type { SelectValue } from '../TSelect/types'
-
 export interface TDropdownProps {
   /** 触发方式。`hover` 用于「鼠标移上去展开」的导航类菜单，`click` 用于操作菜单 */
   trigger?: 'click' | 'hover' | 'manual'
@@ -26,8 +24,16 @@ export interface TDropdownProps {
 }
 
 export interface TDropdownEmits {
-  /** 某一项被选中。参数就是那一项的 `command` */
-  (e: 'command', command: SelectValue | undefined): void
+  /**
+   * 某一项被选中。参数就是那一项的 `command`（原样回抛，不做任何加工）。
+   *
+   * 类型是 `unknown` 而不是某个联合：`command` 是调用方自己定的标识，
+   * 仓库里既有 `"latest"` 这样的字符串，也有 `{ action, resource }` 这样的整对象
+   * （菜单里每一项都要携带自己的上下文）。库无从知道是哪种，硬收窄只会逼调用方
+   * 到处 `as`。收窄这一步交给调用方 —— 与 `TTableColumn` 插槽里的 `row` 同一口径
+   * （见 ui_73info/doc/开发指南.md 末尾）。
+   */
+  (e: 'command', command: unknown): void
   (e: 'visible-change', open: boolean): void
   (e: 'open'): void
   (e: 'close'): void
@@ -45,8 +51,12 @@ export interface TDropdownMenuProps {
 }
 
 export interface TDropdownItemProps {
-  /** 选中时回抛给 `@command` 的标识 */
-  command?: SelectValue
+  /**
+   * 选中时回抛给 `@command` 的标识。
+   *
+   * 类型是 `unknown`（回抛时原样不动），理由见 `TDropdownEmits` 上 `command` 的注释。
+   */
+  command?: unknown
   disabled?: boolean
   /** 上方画一条分隔线，用于把破坏性操作与普通项分开（源页面就是这么做「终止合作」的） */
   divided?: boolean

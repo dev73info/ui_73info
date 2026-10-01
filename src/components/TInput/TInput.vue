@@ -20,7 +20,7 @@
 import { computed, inject, nextTick, onMounted, onScopeDispose, ref, useAttrs, useId, watch } from 'vue'
 import type { ComponentSize } from '../../types/common'
 import { FORM_ITEM_CONTEXT } from '../TForm/context'
-import type { TInputEmits, TInputProps, TInputType } from './types'
+import type { TInputEmits, TInputMode, TInputProps, TInputType } from './types'
 
 defineOptions({ name: 'TInput', inheritAttrs: false })
 
@@ -36,6 +36,7 @@ const props = withDefaults(defineProps<TInputProps>(), {
   maxlength: undefined,
   showCount: false,
   autocomplete: undefined,
+  inputmode: undefined,
   name: undefined,
   id: undefined,
   ariaLabel: undefined,
@@ -207,6 +208,7 @@ defineExpose({
       :readonly="readonly"
       :maxlength="maxlength"
       :name="name"
+      :inputmode="inputmode"
       :rows="autosize === false ? rows : undefined"
       :style="{ resize }"
       :aria-label="ariaLabel"
@@ -232,6 +234,7 @@ defineExpose({
       :readonly="readonly"
       :maxlength="maxlength"
       :autocomplete="autocomplete"
+      :inputmode="inputmode"
       :name="name"
       :aria-label="ariaLabel"
       :aria-invalid="isInvalid ? 'true' : undefined"

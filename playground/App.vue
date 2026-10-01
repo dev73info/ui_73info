@@ -41,6 +41,7 @@ import {
   TIcon,
   TInput,
   TInputNumber,
+  TLoading,
   TMessage,
   TMessageBox,
   TOption,
@@ -285,6 +286,18 @@ async function askConfirm(): Promise<void> {
 
 async function askAlert(): Promise<void> {
   await TMessageBox.alert({ title: '提示', content: '这是一个只有确定按钮的提示框。' })
+}
+
+/** TLoading 演示：遮罩是插槽内容的最后一个子节点，宿主元素本身是组件根元素。 */
+const panelLoading = ref(false)
+
+function togglePanelLoading(): void {
+  panelLoading.value = !panelLoading.value
+  if (panelLoading.value) {
+    window.setTimeout(() => {
+      panelLoading.value = false
+    }, 2000)
+  }
 }
 
 const alertClosed = ref(false)
@@ -845,6 +858,23 @@ const alertClosed = ref(false)
         确认框是模态的，连点两次会排队而不是叠在一起。
       </p>
     </TCard>
+
+    <TCard title="TLoading" description="接替 v-loading：容器组件，宿主元素本身是组件根元素">
+      <div class="row">
+        <TButton variant="solid" tone="accent" @click="togglePanelLoading">盖住下面那块（2 秒）</TButton>
+      </div>
+      <TLoading class="loading-demo" :loading="panelLoading" text="加载中">
+        <p class="muted">
+          这里是要被遮住的正文。注意下面这块本身是 TLoading 的根元素——不是套在它外面，
+          所以 `.loading-demo &gt; *` 这类选择器命中的成员与迁移前一致；
+          遮罩是最后一个子节点，与 `v-loading` 用 appendChild 追加的位置相同。
+        </p>
+      </TLoading>
+      <p class="hint">
+        没在加载时它不带 <code>position: relative</code>（与指令的临时行为一致）；
+        遮罩底色与转圈都取令牌，切到 dev 主题会跟着变。
+      </p>
+    </TCard>
   </main>
 </template>
 
@@ -941,6 +971,15 @@ const alertClosed = ref(false)
   border-radius: var(--73-radius-check);
   background: var(--73-inset);
   font-family: var(--73-font-family-mono);
+}
+
+/* TLoading 演示：给它一个有圆角与内边距的盒子，好看出「遮罩跟着宿主的圆角走」 */
+.loading-demo {
+  margin-top: 12px;
+  padding: 16px;
+  border: 1px solid var(--73-border-soft);
+  border-radius: var(--73-radius-inner);
+  background: var(--73-inset);
 }
 
 .result {

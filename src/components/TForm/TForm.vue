@@ -17,6 +17,7 @@ import type { TFormInstance, TFormProps } from './types'
 defineOptions({ name: 'TForm' })
 
 const props = withDefaults(defineProps<TFormProps>(), {
+  model: () => ({}),
   rules: () => ({}),
   labelWidth: undefined,
   labelPosition: 'top',

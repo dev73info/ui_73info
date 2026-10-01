@@ -44,6 +44,7 @@ import { TForm, TFormItem } from './components/TForm'
 import { TIcon } from './components/TIcon'
 import { TInput } from './components/TInput'
 import { TInputNumber } from './components/TInputNumber'
+import { TLoading } from './components/TLoading'
 import { TPagination } from './components/TPagination'
 import { TPopover } from './components/TPopover'
 import { TRadio, TRadioButton, TRadioGroup } from './components/TRadio'
@@ -58,6 +59,13 @@ export * from './components'
 export * from './primitives'
 export * from './theme'
 export * from './types/common'
+/*
+ * 图标是一组**预置组件**（59 个），与上面三层的定位不同：它没有行为、不读令牌，
+ * 只是把一份 SVG 路径数据包成组件。放进出口是为了让页面能 `import { Plus } from 'ui_73info'`，
+ * 与原来从 `@element-plus/icons-vue` 引的时候同名同位——迁移就只是换一个来源。
+ * 库内不再依赖任何第三方图标包，理由见 `src/icons/paths.ts` 顶部。
+ */
+export * from './icons'
 
 /**
  * 全部**有模板形态**的组件，键名即组件名。
@@ -87,6 +95,7 @@ export const components: Record<string, Component> = {
   TIcon,
   TInput,
   TInputNumber,
+  TLoading,
   TOption,
   TOptionGroup,
   TPagination,

@@ -23,7 +23,6 @@
  */
 import { computed, inject, onScopeDispose, ref, useId, watch } from 'vue'
 import { useListboxContext, type ListboxItemHandle } from '../../primitives'
-import type { SelectValue } from '../TSelect/types'
 import { DROPDOWN_CONTEXT, type DropdownContext } from './context'
 import type { TDropdownItemEmits, TDropdownItemProps } from './types'
 
@@ -70,7 +69,7 @@ function labelText(): string {
 function select(): void {
   if (props.disabled) return
   emit('click')
-  dropdown.runCommand(props.command as SelectValue | undefined)
+  dropdown.runCommand(props.command)
 }
 
 const listboxItem: ListboxItemHandle = {

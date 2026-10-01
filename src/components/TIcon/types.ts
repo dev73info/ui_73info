@@ -2,7 +2,7 @@ import type { Component } from 'vue'
 
 export interface TIconProps {
   /**
-   * 直接给图标组件（如 `import { Plus } from '@element-plus/icons-vue'`）。
+   * 直接给图标组件（如 `import { Plus } from 'ui_73info'`，图标与组件同一个来源）。
    * 也可以改用默认插槽放图标组件，两种写法等价。
    */
   icon?: Component

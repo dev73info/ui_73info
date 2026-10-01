@@ -11,6 +11,12 @@ export type TInputType = 'text' | 'password' | 'email' | 'number' | 'search' | '
  */
 export type TInputAutosize = boolean | { minRows?: number; maxRows?: number }
 
+/**
+ * 原生 `inputmode` 的取值：移动端软键盘该弹哪一副（数字、电话、邮箱…）。
+ * 取值与 `HTMLInputElement.inputMode` 一致。
+ */
+export type TInputMode = 'none' | 'text' | 'decimal' | 'numeric' | 'tel' | 'search' | 'email' | 'url'
+
 export interface TInputProps {
   /** 值。**始终以字符串发出**（`update:modelValue`），与原生 `<input>` 一致。 */
   modelValue?: string | number | null
@@ -34,6 +40,15 @@ export interface TInputProps {
   /** 在右下角显示 `已输入/上限` 计数。需要同时传 `maxlength`。 */
   showCount?: boolean
   autocomplete?: string
+  /**
+   * 移动端软键盘的形态提示（原生 `inputmode`）。银行卡号、金额这类只输数字的字段用它。
+   *
+   * 为什么必须声明成 prop、不能靠属性透传：本组件的根元素是外层那个包裹 `div`，
+   * 未声明的属性会挂在 `div` 上（`inputmode` 对 `div` 没有任何意义），
+   * 真正的输入框拿不到，手机上就不会弹数字键盘——而且这种失效不报错、也不影响外观，
+   * 只有拿真机点开输入框才会发现。取值见 `TInputMode`。
+   */
+  inputmode?: TInputMode
   /** 原生 `name`，表单序列化用 */
   name?: string
   /** 覆盖 `id`；不传时用 `TFormItem` 分配的 id，以便 `<label for>` 关联 */

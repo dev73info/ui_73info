@@ -37,7 +37,6 @@
  */
 import { computed, nextTick, provide } from 'vue'
 import { handleListboxKeydown, provideListbox, useOverlay } from '../../primitives'
-import type { SelectValue } from '../TSelect/types'
 import { DROPDOWN_CONTEXT, type DropdownContext } from './context'
 import type { TDropdownEmits, TDropdownProps } from './types'
 
@@ -111,7 +110,7 @@ function toggle(): void {
   else show()
 }
 
-function runCommand(command: SelectValue | undefined): void {
+function runCommand(command: unknown): void {
   emit('command', command)
   if (props.hideOnClick) close()
 }
