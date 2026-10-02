@@ -25,6 +25,7 @@
  * | | Element Plus | 这里 |
  * | --- | --- | --- |
  * | 清空后的值 | `undefined` / `''` 随版本变 | 单选发 **`null`**，多选发 `[]` |
+ * | `v-model` 传入 `''` | 当作有效值（触发器空白 + 多一个清除叉号） | 与 `null` 同等，视为未选择 |
  * | 面板 | 默认挂载、靠 `v-show` 藏 | 同（**刻意**：关闭时仍要能查到已选项的文本） |
  * | 打开时的高亮 | 不高亮 | 已有选中项就高亮它，否则不高亮 |
  * | 虚拟化 | `el-select-v2` | **未实现**；上千条选项时按普通列表渲染 |
@@ -78,10 +79,28 @@ const isInvalid = computed(() => (item ? item.state.value === 'error' : false))
 
 /* ---------- 选中值 ---------- */
 
+/**
+ * 「未选择」的判定：`null`、`undefined`，以及**空字符串**。
+ *
+ * `''` 必须一并算作未选择。Element 迁过来的 `v-model` 惯用 `''` 表示「什么也没选」
+ * （例如 `DevResourceListView.vue` 的 `filters.visibility`），只把 `null` / `undefined`
+ * 当空会让 `''` 变成一个「已选中的值」——触发器既不渲染占位文字，又凭空多出一个清除叉号。
+ * 因此本组件约定：**`''` 不作为选项值使用**（对照文末「与 Element 的差异」）。
+ *
+ * 注意与 `TForm/validate.ts` 的 `isEmptyValue` 区分：那个还管「纯空白字符串」与空数组，
+ * 服务于表单校验的「有没有填」；这里只回答「`v-model` 这一格有没有带值」，别合并。
+ */
+function isUnselectedValue(value: SelectValue | undefined): value is null | undefined | '' {
+  return value === null || value === undefined || value === ''
+}
+
+/** 选中值。单选恒为 0 或 1 个元素的数组；多选为全部选中值 */
 const selected = computed<SelectValue[]>(() => {
   const value = props.modelValue
-  if (props.multiple) return Array.isArray(value) ? value : []
-  if (Array.isArray(value) || value === null || value === undefined) return []
+  if (props.multiple) {
+    return Array.isArray(value) ? value.filter((current) => !isUnselectedValue(current)) : []
+  }
+  if (Array.isArray(value) || isUnselectedValue(value)) return []
   return [value]
 })
 
