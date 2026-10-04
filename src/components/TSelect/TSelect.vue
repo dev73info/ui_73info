@@ -28,7 +28,7 @@
  * | `v-model` 传入 `''` | 当作有效值（触发器空白 + 多一个清除叉号） | 与 `null` 同等，视为未选择 |
  * | 面板 | 默认挂载、靠 `v-show` 藏 | 同（**刻意**：关闭时仍要能查到已选项的文本） |
  * | 打开时的高亮 | 不高亮 | 已有选中项就高亮它，否则不高亮 |
- * | 虚拟化 | `el-select-v2` | **未实现**；上千条选项时按普通列表渲染 |
+ * | 虚拟化 | `el-select-v2` | **未实现**，但过滤后最多只渲染 `maxVisibleOptions`（默认 200）项；选项被截断时提示继续输入。不可过滤的下拉不截断 |
  *
  * ## 表单对接
  *
@@ -42,7 +42,7 @@ import { FORM_ITEM_CONTEXT } from '../TForm/context'
 import { TEmpty } from '../TEmpty'
 import { isSameValue, SELECT_CONTEXT, type SelectContext, type SelectOptionEntry } from './context'
 import TOption from './TOption.vue'
-import type { SelectModelValue, SelectValue, TSelectEmits, TSelectProps } from './types'
+import type { SelectModelValue, SelectOptionItem, SelectValue, TSelectEmits, TSelectProps } from './types'
 
 defineOptions({ name: 'TSelect', inheritAttrs: false })
 
@@ -60,6 +60,8 @@ const props = withDefaults(defineProps<TSelectProps>(), {
   fitInputWidth: true,
   noMatchText: '无匹配项',
   noDataText: '暂无选项',
+  maxVisibleOptions: 200,
+  moreText: '还有更多项未显示，请输入关键字缩小范围',
   name: undefined,
   id: undefined,
   ariaLabel: undefined,
@@ -132,7 +134,9 @@ function entryOf(value: SelectValue | undefined): SelectOptionEntry | undefined 
 /** 值的显示文本。查不到时退回值本身——显示空字符串会让问题更难排查 */
 function labelOf(value: SelectValue | undefined): string {
   if (value === undefined) return ''
-  return entryOf(value)?.label() ?? String(value)
+  // 被 `maxVisibleOptions` 截掉的选项没有渲染、也就没有登记，退回 `options` 表里查
+  const fromOptions = props.options.find((option) => isSameValue(option.value, value))
+  return entryOf(value)?.label() ?? fromOptions?.label ?? String(value)
 }
 
 /* ---------- 过滤 ---------- */
@@ -145,6 +149,39 @@ function matches(label: string): boolean {
   if (!needle) return true
   return label.toLowerCase().includes(needle)
 }
+
+/** 命中过滤词的 `options` 项。过滤只做一次，面板只渲染它的前若干项，不再全量渲染 */
+const matchedOptions = computed<SelectOptionItem[]>(() => {
+  const needle = query.value.trim().toLowerCase()
+  if (!props.filterable || !needle) return props.options
+  return props.options.filter((option) => option.label.toLowerCase().includes(needle))
+})
+
+/**
+ * 面板里真正渲染的 `options`：命中过滤词的前 `maxVisibleOptions` 项。
+ *
+ * 不可过滤时返回全部——截断了用户也没有别的办法够到后面的选项。
+ * 已选项落在窗口外时补到最前面：打开面板要能高亮已选项（见 `handleOpened`），
+ * 否则「回车确认原值」这个最常见的动作会落空。
+ */
+const visibleOptions = computed<SelectOptionItem[]>(() => {
+  const list = matchedOptions.value
+  const limit = props.maxVisibleOptions
+  if (!props.filterable || !limit || list.length <= limit) return list
+
+  const head = list.slice(0, limit)
+  const current = selected.value[0]
+  if (current !== undefined && !head.some((option) => isSameValue(option.value, current))) {
+    const picked = list.find((option) => isSameValue(option.value, current))
+    if (picked) return [picked, ...head.slice(0, limit - 1)]
+  }
+  return head
+})
+
+/** 被截断、没有渲染出来的选项数（`0` 表示没有截断） */
+const hiddenOptionCount = computed(() =>
+  Math.max(matchedOptions.value.length - visibleOptions.value.length, 0),
+)
 
 /** 当前可见且可用的选项（登记顺序即 DOM 顺序） */
 function visibleEntries(): SelectOptionEntry[] {
@@ -299,10 +336,28 @@ const inputValue = computed(() => (open.value ? query.value : labelOf(selected.v
 
 const showPlaceholder = computed(() => !props.filterable && selected.value.length === 0)
 
-const isEmpty = computed(() => registered.value.length === 0)
-const hasNoMatch = computed(
-  () => props.filterable && query.value.trim().length > 0 && visibleEntries().length === 0,
-)
+/**
+ * 一份选项都没有。
+ *
+ * 只在「`options` 与插槽都没给内容」时成立：`options` 非空却把 `registered` 也算进来，
+ * 过滤后一条不剩会让面板卡在「暂无选项」上出不来（`ul` 就是被这个分支挡掉的）。
+ * 过滤后为空属于「无匹配」，见下面的 `hasNoMatch`。
+ */
+const isEmpty = computed(() => props.options.length === 0 && registered.value.length === 0)
+
+/**
+ * 过滤后一条都不剩。
+ *
+ * `options` 驱动时按选项表本身判断，**不要看 `registered`**：过滤后必有选项组件挂载/卸载，
+ * `registered` 会跟着变，而这个分支决定 `ul` 存不存在——两边互相触发就是
+ * 「Maximum recursive updates exceeded」。插槽驱动的选项由调用方渲染、只靠 `v-show` 收起，
+ * 不会因为过滤而卸载，读 `registered` 是稳定的。
+ */
+const hasNoMatch = computed(() => {
+  if (!props.filterable || query.value.trim().length === 0) return false
+  if (props.options.length > 0) return matchedOptions.value.length === 0
+  return visibleEntries().length === 0
+})
 
 const visibleTags = computed(() =>
   props.maxTagCount === undefined
@@ -432,7 +487,7 @@ defineExpose({
       <TEmpty v-else-if="hasNoMatch" :description="noMatchText" size="sm" variant="plain" />
       <ul class="t73-select-panel__list">
         <TOption
-          v-for="option in options"
+          v-for="option in visibleOptions"
           :key="String(option.value)"
           :value="option.value"
           :label="option.label"
@@ -440,6 +495,7 @@ defineExpose({
         />
         <slot />
       </ul>
+      <div v-if="hiddenOptionCount > 0" class="t73-select-panel__more">{{ moreText }}</div>
     </div>
   </Teleport>
 </template>
@@ -679,6 +735,15 @@ defineExpose({
 
 .t73-select-panel__hint {
   padding: 10px 12px;
+  color: var(--73-ink-muted);
+  font-size: var(--73-font-size-sm);
+}
+
+/* 选项被截断的提示：贴在列表下方，与列表之间留一条分隔线 */
+.t73-select-panel__more {
+  margin-top: 4px;
+  padding: 8px 12px 2px;
+  border-top: 1px solid var(--73-border);
   color: var(--73-ink-muted);
   font-size: var(--73-font-size-sm);
 }

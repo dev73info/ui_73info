@@ -49,6 +49,16 @@ export interface TSelectProps {
   noMatchText?: string
   /** 完全没有选项时的文案 */
   noDataText?: string
+  /**
+   * 过滤后最多渲染多少个选项，`0` 表示不限。默认 200。
+   *
+   * 只对 `filterable` 生效：不可过滤时截断会让后面的选项永远选不到。
+   * 选项上千时（例如渠道银行字典 5260 条）全量渲染会让打开面板与每次输入都卡住，
+   * 见组件头部「与 Element 的差异」里的虚拟化一条。
+   */
+  maxVisibleOptions?: number
+  /** 选项被截断时的提示文案 */
+  moreText?: string
   /** 传给原生控件的 `name` / `id`（表单上下文里会自动取到 `id`） */
   name?: string
   id?: string

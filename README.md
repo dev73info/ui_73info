@@ -83,7 +83,12 @@ import 'ui_73info/alias.css'
 - `pnpm type-check` 通过；`pnpm dev`（端口 5180）可打开 playground 逐项人工验证。
 
 **`user-client` 里实际渲染过的 Element 组件，除两处外全部有对应物**：
-`el-select-v2` 的虚拟化（改为普通列表渲染）与 `ElConfigProvider`（没有 locale 层）。
+`el-select-v2` 的虚拟化（改为「过滤后最多渲染 `maxVisibleOptions` 项」，默认 200，见下）
+与 `ElConfigProvider`（没有 locale 层）。
+
+> `TSelect` 不做虚拟化，但过滤后会截断渲染：选项上千时（渠道银行字典 5260 条）全量渲染
+> 会让打开面板与每次输入都卡住。截断只对 `filterable` 生效，被截掉的项给出「继续输入」提示；
+> 不可过滤的下拉仍全量渲染，`maxVisibleOptions=0` 可关掉截断。
 
 **已接入 `user-client`**（2026-09-30）：link 依赖与 Vite 分块、样式引入顺序、
 按路由切主题（门户 / 开发者）都已完成并实测。迁移按耦合度分批推进：样板页 `BadgeCenterView`
