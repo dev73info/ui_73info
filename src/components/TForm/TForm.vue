@@ -128,6 +128,12 @@ defineExpose<TFormInstance>({ validate, validateField, clearValidate, resetField
  * 这样调用方写 `<TForm @submit="save">` 就够了，不必每处都写
  * `if (!(await form.validate())) return`。想自己接管就 `.native` —— 也就是不加
  * `@submit`，校验仍可通过模板 ref 手动调。
+ *
+ * ⚠️ 调用方**不要**写 `@submit.prevent="handler"`：本组件 emit 的 `submit` 是**不带参数**的
+ * （原生事件已经在 `onSubmit` 里被 `preventDefault` 掉了），而 Vue 的 `.prevent` 修饰符会对
+ * 事件对象调 `preventDefault()` —— 参数是 `undefined` 时会抛 `TypeError`，导致 handler
+ * **根本不会被调用**（表现为「点了按钮没反应」，2026-10-04 在收款银行卡表单上踩过）。
+ * 写 `@submit="handler"` 就够了。
  */
 async function onSubmit(event: Event): Promise<void> {
   event.preventDefault()
