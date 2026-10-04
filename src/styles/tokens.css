@@ -105,8 +105,10 @@
   --73-transition: 160ms ease;
 
   /* --- 层级 ---
-     弹窗遮罩 3000 来自 modal.css 的 `.el-overlay { z-index: 3000 !important }`
-     （那里为了盖住工作台头部而提升过）；下拉与气泡在它之下，全局提示在它之上。 */
+     浮层真实层级由 `useZIndex` 在打开时分配（后打开的层在上面），这两个令牌是基准与兜底：
+     分配从 2000（与 `--73-z-dropdown` 同值）起算，上限是「基准 + 同时打开的层数」，
+     所以不会越过全局提示。遮罩的历史值 3000 来自 modal.css 的
+     `.el-overlay { z-index: 3000 !important }`（那里为盖住工作台头部提升过）。 */
   --73-z-dropdown: 2000;
   --73-z-dialog: 3000;
   --73-z-toast: 3100;

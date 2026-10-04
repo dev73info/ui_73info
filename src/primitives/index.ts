@@ -22,6 +22,8 @@ export { useFloating } from './useFloating'
 export type { FloatingOptions, FloatingReturn, Placement } from './useFloating'
 export { useOverlay } from './useOverlay'
 export type { OverlayCloseReason, OverlayOptions, OverlayReturn, OverlayTrigger } from './useOverlay'
+export { acquireZIndex } from './useZIndex'
+export type { ZIndexHandle } from './useZIndex'
 export {
   LISTBOX_CONTEXT,
   createListbox,

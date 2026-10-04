@@ -19,12 +19,13 @@
  * | 绑定 | `v-model="visible"` | `v-model:open="visible"` |
  * | 关闭事件 | `@close` 无参数 | `@close(reason)` 带原因 |
  * | 内容生命周期 | 默认保留，`destroy-on-close` 才销毁 | **默认每次打开重新挂载**（`v-if`），表单不会残留上一次的错误态 |
- * | 遮罩层级 | 依赖 Element 的 `--el-index` 递增 | 固定 `--73-z-dialog`（3000，与 `modal.css` 提升过的遮罩一致） |
+ * | 遮罩层级 | 依赖 Element 的 `--el-index` 递增 | 同样在打开时取号（`useZIndex`，与下拉共用一套），后开的层在上面；令牌 `--73-z-dialog` 只作兜底 |
  */
-import { computed, ref, useAttrs, useId } from 'vue'
+import { computed, onScopeDispose, ref, useAttrs, useId, watch } from 'vue'
 import { useBodyScrollLock } from '../../primitives/useBodyScrollLock'
 import { useDismissable } from '../../primitives/useDismissable'
 import { useFocusTrap } from '../../primitives/useFocusTrap'
+import { acquireZIndex, type ZIndexHandle } from '../../primitives/useZIndex'
 import type { TDialogCloseReason, TDialogEmits, TDialogProps } from './types'
 
 defineOptions({ name: 'TDialog', inheritAttrs: false })
@@ -52,6 +53,35 @@ const isOpen = computed(() => props.open)
 const panelStyle = computed(() => ({
   '--t73-dialog-width': typeof props.width === 'number' ? `${props.width}px` : props.width,
 }))
+
+/**
+ * 遮罩与弹窗的层级。
+ *
+ * 与下拉共用一套层级管理器（`useZIndex`）：编号在打开时取，**后开的层在上面**，
+ * 所以「弹窗里再打开一个下拉」时面板在弹窗之上，而点开另一个弹窗又能盖住前一个。
+ * 写死 `--73-z-dialog`（3000）做不到这件事——下拉固定 2000，永远被弹窗压住。
+ */
+const layer = ref<ZIndexHandle | null>(null)
+
+watch(
+  isOpen,
+  (open) => {
+    if (open) {
+      if (!layer.value) layer.value = acquireZIndex()
+      return
+    }
+    layer.value?.release()
+    layer.value = null
+  },
+  { immediate: true },
+)
+
+const overlayStyle = computed(() => (layer.value ? { zIndex: layer.value.zIndex } : undefined))
+
+onScopeDispose(() => {
+  layer.value?.release()
+  layer.value = null
+})
 
 useBodyScrollLock(computed(() => props.open && props.lockScroll))
 useFocusTrap(panelRef, isOpen)
@@ -81,7 +111,7 @@ defineExpose({ close, panelRef })
 <template>
   <Teleport :to="teleportTo || 'body'" :disabled="teleportTo === false">
     <Transition name="t73-dialog" @after-enter="emit('opened')" @after-leave="emit('closed')">
-      <div v-if="open" class="t73-dialog-overlay">
+      <div v-if="open" class="t73-dialog-overlay" :style="overlayStyle">
         <div
           ref="panelRef"
           class="t73-dialog t73"

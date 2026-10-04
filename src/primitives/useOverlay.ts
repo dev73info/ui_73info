@@ -33,6 +33,7 @@
 import { computed, onScopeDispose, ref, toValue, watch, type CSSProperties, type MaybeRefOrGetter, type Ref } from 'vue'
 import { useDismissable, type DismissReason } from './useDismissable'
 import { useFloating, type Placement } from './useFloating'
+import { acquireZIndex, type ZIndexHandle } from './useZIndex'
 
 export type OverlayTrigger = 'click' | 'hover' | 'focus' | 'manual'
 
@@ -127,7 +128,7 @@ export function useOverlay(options: OverlayOptions = {}): OverlayReturn {
     { immediate: true },
   )
 
-  const { style: panelStyle, resolvedPlacement } = useFloating({
+  const { style: floatingStyle, resolvedPlacement } = useFloating({
     anchor: anchorRef,
     panel: panelRef,
     open,
@@ -135,6 +136,32 @@ export function useOverlay(options: OverlayOptions = {}): OverlayReturn {
     gap: options.gap,
     matchWidth: options.matchWidth,
   })
+
+  /**
+   * 浮层层级：打开时从层级管理器取一个，面板比「先开的对话框」高，比「后开的层」低。
+   *
+   * 不能用组件样式里写死的 `--73-z-dropdown`：对话框的遮罩是 `--73-z-dialog`（3000），
+   * 面板固定 2000 时会被整块压在底下，弹窗里打开下拉就看不见选项。
+   */
+  const layer = ref<ZIndexHandle | null>(null)
+
+  watch(
+    open,
+    (isOpen) => {
+      if (isOpen) {
+        if (!layer.value) layer.value = acquireZIndex()
+        return
+      }
+      layer.value?.release()
+      layer.value = null
+    },
+    { immediate: true },
+  )
+
+  /** 位置由 `useFloating` 给，层级由层级管理器给 */
+  const panelStyle = computed<CSSProperties>(() =>
+    layer.value ? { ...floatingStyle.value, zIndex: layer.value.zIndex } : floatingStyle.value,
+  )
 
   useDismissable({
     element: panelRef,
@@ -262,7 +289,12 @@ export function useOverlay(options: OverlayOptions = {}): OverlayReturn {
     if (!isOpen) clearTimers()
   })
 
-  onScopeDispose(clearTimers)
+  onScopeDispose(() => {
+    clearTimers()
+    // 组件被卸载时也要把层级交回去，否则残留的层会把后续浮层的层级抬高
+    layer.value?.release()
+    layer.value = null
+  })
 
   return {
     open,
