@@ -7,18 +7,18 @@
  *
  * ## 规格来源
  *
- * 触发器的尺寸来自 `.dev-toolbar .el-select__wrapper` 与
- * `.dev-page--publish .el-select__wrapper`（`dev-base.css` / `dev-resource.css`）：
+ * 触发器的尺寸与描边与 `TInput` 对齐（同高、同圆角、同 `border` 描边），
+ * 这样工具栏里「下拉 + 搜索 + 重置」并排时不会出现一套 inset 阴影、一套实线边框。
  *
  * ```css
- * min-height: var(--dev-control-height); height: var(--dev-control-height);
- * padding: 0 12px; border-radius: var(--dev-radius-control);
- * background: var(--dev-surface-strong); box-shadow: 0 0 0 1px var(--dev-line) inset;
+ * height / min-height: var(--73-control-height);
+ * padding: 0 12px; border-radius: var(--73-radius-control);
+ * border: 1px solid var(--73-border); background: var(--73-surface-strong);
  * ```
  *
- * 悬浮换主色描边、聚焦换主色描边，与同一处的 `.is-hovering` / `.is-focused` 一致。
- * 面板的圆角 12px、`0 18px 36px` 投影、菜单项 8px 圆角来自
- * `.dev-resource-action-menu.el-popper` 与 `.el-dropdown-menu`。
+ * 悬浮换 `--73-border-hover`、打开 / 聚焦换主色描边；聚焦额外带 `--73-focus-ring`。
+ * 面板的圆角、投影、菜单项圆角走 `--73-radius-panel` / `--73-shadow-panel` /
+ * `--73-radius-menu-item`。
  *
  * ## 与 Element 的差异
  *
@@ -331,8 +331,20 @@ function onFocusOut(event: FocusEvent): void {
 
 /* ---------- 显示 ---------- */
 
-/** 面板打开时输入框显示过滤词；关闭时显示已选项文本 */
-const inputValue = computed(() => (open.value ? query.value : labelOf(selected.value[0])))
+/**
+ * 输入框展示值。
+ * - 多选：已选项走 tags，输入框只承担过滤，关闭时也不得回填首项文案（否则会与 tag 叠字）。
+ * - 单选：面板打开时显示过滤词，关闭时显示已选项文本。
+ */
+const inputValue = computed(() => {
+  if (props.multiple) return query.value
+  return open.value ? query.value : labelOf(selected.value[0])
+})
+
+/** 多选已有 tag 时不再显示 placeholder，避免与芯片叠字 */
+const filterPlaceholder = computed(() =>
+  props.multiple && selected.value.length > 0 ? undefined : props.placeholder,
+)
 
 const showPlaceholder = computed(() => !props.filterable && selected.value.length === 0)
 
@@ -435,7 +447,7 @@ defineExpose({
       :id="id ?? item?.inputId ?? fallbackId"
       :name="name"
       :value="inputValue"
-      :placeholder="placeholder"
+      :placeholder="filterPlaceholder"
       :disabled="isDisabled"
       :aria-autocomplete="'list'"
       :aria-invalid="isInvalid ? 'true' : undefined"
@@ -501,48 +513,50 @@ defineExpose({
 </template>
 
 <style scoped>
-/* --- 触发器：`.dev-toolbar .el-select__wrapper` --- */
+/* --- 触发器：与 TInput 同口径（实线描边 + 定高），工具栏并排才齐 --- */
 .t73-select {
   position: relative;
   display: flex;
   align-items: center;
   gap: 6px;
   width: 100%;
+  height: var(--73-control-height);
   min-height: var(--73-control-height);
   padding: 0 12px;
+  border: 1px solid var(--73-border);
   border-radius: var(--73-radius-control);
   background: var(--73-surface-strong);
-  /* 描边用 inset 阴影而不是 border：与源文件一致，悬浮/聚焦时也不必重排 */
-  box-shadow: 0 0 0 1px var(--73-border) inset;
   color: var(--73-ink);
   font-family: var(--73-font-family);
   cursor: pointer;
-  transition: box-shadow var(--73-transition);
+  transition:
+    border-color var(--73-transition),
+    box-shadow var(--73-transition),
+    background-color var(--73-transition);
 }
 
 .t73-select--sm {
+  height: var(--73-control-height-sm);
   min-height: var(--73-control-height-sm);
   padding: 0 8px;
 }
 
 .t73-select:hover:not(.t73-select--disabled) {
-  box-shadow: 0 0 0 1px var(--73-border-hover) inset;
+  border-color: var(--73-border-hover);
 }
 
 .t73-select--open,
 .t73-select:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 1px var(--73-accent) inset;
+  border-color: var(--73-accent);
 }
 
 .t73-select:focus-visible {
-  box-shadow:
-    0 0 0 1px var(--73-accent) inset,
-    var(--73-focus-ring);
+  box-shadow: var(--73-focus-ring);
 }
 
 .t73-select--invalid {
-  box-shadow: 0 0 0 1px var(--73-danger) inset;
+  border-color: var(--73-danger);
 }
 
 .t73-select--disabled {
@@ -551,11 +565,20 @@ defineExpose({
   cursor: not-allowed;
 }
 
-/* 多选时触发器会换行：内边距收一点，让芯片不被挤扁 */
-.t73-select--multiple {
+/*
+ * 多选：定高放开；右侧留给箭头/清除；芯片用 display:contents 直接参与触发器换行，
+ * 避免「外层 tags 盒子按内容撑开 → 内部不换行 → 溢出叠到邻行」的经典 flex 坑。
+ */
+.t73-select.t73-select--multiple {
   flex-wrap: wrap;
-  padding: 5px 12px;
+  align-items: center;
+  align-content: flex-start;
+  height: auto;
+  min-height: var(--73-control-height);
+  padding: 5px 32px 5px 8px;
   row-gap: 4px;
+  column-gap: 4px;
+  overflow: visible;
 }
 
 .t73-select__placeholder {
@@ -604,13 +627,42 @@ defineExpose({
   flex-wrap: wrap;
   align-items: center;
   gap: 4px;
-  flex: 1 1 auto;
+  flex: 0 1 auto;
+  max-width: 100%;
   min-width: 0;
+}
+
+.t73-select--multiple .t73-select__tags {
+  display: contents;
+}
+
+.t73-select--multiple .t73-select__input {
+  flex: 1 1 72px;
+  min-width: 72px;
+  width: auto;
+  height: 22px;
+  align-self: center;
+}
+
+.t73-select--multiple .t73-select__arrow,
+.t73-select--multiple .t73-select__clear {
+  position: absolute;
+  top: 10px;
+  z-index: 1;
+}
+
+.t73-select--multiple .t73-select__arrow {
+  right: 8px;
+}
+
+.t73-select--multiple .t73-select__clear {
+  right: 28px;
 }
 
 .t73-select__tag {
   display: inline-flex;
   align-items: center;
+  flex: 0 1 auto;
   gap: 4px;
   max-width: 100%;
   min-height: 22px;
