@@ -16,6 +16,9 @@ coverage
 
 *.tsbuildinfo
 
+# Cursor 索引排除表（本机用，不入库）
+.cursorignore
+
 # 日志
 logs
 *.log
