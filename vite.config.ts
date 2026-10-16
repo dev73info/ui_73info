@@ -23,6 +23,8 @@ export default defineConfig({
      * `strictPort: true` 是刻意的：端口被占时直接报错，而不是悄悄换一个——
      * 悄悄换端口会让人对着文档里的地址拿到另一个页面（实测踩过一次）。
      */
+    // 绑 0.0.0.0：localhost / 127.0.0.1 / 局域网 IP 都能进。
+    host: '0.0.0.0',
     port: 5180,
     strictPort: true,
     fs: {

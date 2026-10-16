@@ -37,8 +37,6 @@ export interface TInputProps {
   /** 有值时在右侧出现清除按钮 */
   clearable?: boolean
   maxlength?: number
-  /** 在右下角显示 `已输入/上限` 计数。需要同时传 `maxlength`。 */
-  showCount?: boolean
   autocomplete?: string
   /**
    * 移动端软键盘的形态提示（原生 `inputmode`）。银行卡号、金额这类只输数字的字段用它。

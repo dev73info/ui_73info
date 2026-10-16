@@ -85,9 +85,12 @@ function onClick(event: MouseEvent): void {
     @click="onClick"
   >
     <span v-if="loading" class="t73-button__spinner" aria-hidden="true" />
-    <span v-if="$slots.prefix" class="t73-button__affix"><slot name="prefix" /></span>
-    <span class="t73-button__label"><slot /></span>
-    <span v-if="$slots.suffix" class="t73-button__affix"><slot name="suffix" /></span>
+    <!-- icon-only 加载时只留转圈：插槽图标再留着会和 spinner 并排挤进正方形，看起来像两个叠歪的刷新图标 -->
+    <template v-if="!(loading && iconOnly)">
+      <span v-if="$slots.prefix" class="t73-button__affix"><slot name="prefix" /></span>
+      <span class="t73-button__label"><slot /></span>
+      <span v-if="$slots.suffix" class="t73-button__affix"><slot name="suffix" /></span>
+    </template>
   </component>
 </template>
 

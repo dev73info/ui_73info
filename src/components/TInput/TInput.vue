@@ -2,7 +2,7 @@
 /**
  * TInput
  *
- * 接替 `<el-input>`（user-client 里 95 处）与 `<el-input>` 的 `clearable` / `show-word-limit`
+ * 接替 `<el-input>`（user-client 里 95 处）与 `<el-input>` 的 `clearable`
  * / 前缀后缀那几种用法。
  *
  * ## 与表单自动对接
@@ -34,7 +34,6 @@ const props = withDefaults(defineProps<TInputProps>(), {
   invalid: undefined,
   clearable: false,
   maxlength: undefined,
-  showCount: false,
   autocomplete: undefined,
   inputmode: undefined,
   name: undefined,
@@ -247,10 +246,6 @@ defineExpose({
       @keydown="onKeydown"
     />
 
-    <span v-if="showCount && maxlength" class="t73-input__count" aria-hidden="true">
-      {{ currentValue.length }}/{{ maxlength }}
-    </span>
-
     <button
       v-if="showClear"
       type="button"
@@ -330,12 +325,6 @@ defineExpose({
   line-height: 1.6;
 }
 
-.t73-input--textarea .t73-input__count {
-  /* 计数贴在右上角，别跟着文本基线跑 */
-  align-self: flex-start;
-  padding-top: 2px;
-}
-
 .t73-input__control::placeholder {
   color: var(--73-ink-placeholder);
 }
@@ -374,13 +363,6 @@ defineExpose({
   align-items: center;
   flex: 0 0 auto;
   color: var(--73-ink-muted);
-}
-
-.t73-input__count {
-  flex: 0 0 auto;
-  font-size: var(--73-font-size-sm);
-  color: var(--73-ink-muted);
-  font-variant-numeric: tabular-nums;
 }
 
 .t73-input__clear {

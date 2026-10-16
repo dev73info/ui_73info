@@ -462,11 +462,11 @@ const alertClosed = ref(false)
 
     <!-- ==================== 表单 ==================== -->
 
-    <TCard title="TInput" description="单行 / 多行（textarea）/ clearable / showCount / 错误态">
+    <TCard title="TInput" description="单行 / 多行（textarea）/ clearable / 错误态">
       <div class="grid">
         <TInput v-model="model.name" placeholder="普通输入" />
         <TInput v-model="model.name" placeholder="可清除" clearable />
-        <TInput v-model="model.email" placeholder="带计数" :maxlength="30" show-count />
+        <TInput v-model="model.email" placeholder="邮箱" :maxlength="30" />
         <TInput model-value="错误态" invalid placeholder="错误态" />
         <TInput model-value="禁用" disabled />
         <TInput v-model="model.name" placeholder="小尺寸" size="sm" />
@@ -480,7 +480,6 @@ const alertClosed = ref(false)
           type="textarea"
           placeholder="多行：跟着内容长高，到 6 行封顶后内部滚动"
           :maxlength="200"
-          show-count
           :autosize="{ minRows: 2, maxRows: 6 }"
         />
         <TInput
