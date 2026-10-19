@@ -20,6 +20,12 @@
  *
  * `<el-alert>` 的 `title` 是**必填**，`description` 才会换行；这里两个都是可选，
  * 且 `description` 没有也照常渲染。迁移时把只写 `title` 的写法直接搬过来即可。
+ *
+ * ## `actions` 插槽
+ *
+ * 提示框自带一个动作时（例如「去签署协议」），把按钮放进 `#actions`：它排在文案
+ * 右侧、竖向居中，不落在 `#default` 里——默认插槽是 `<p>`，塞进去会排在说明文字
+ * 下面，观感也不对。
  */
 import { computed } from 'vue'
 import type { Tone } from '../../types/common'
@@ -71,6 +77,10 @@ const classes = computed(() => [
       </p>
     </div>
 
+    <div v-if="$slots.actions" class="t73-alert__actions">
+      <slot name="actions" />
+    </div>
+
     <button
       v-if="closable"
       type="button"
@@ -89,6 +99,8 @@ const classes = computed(() => [
 .t73-alert {
   display: flex;
   align-items: flex-start;
+  /* 窄屏时动作区整块换到下一行，不去挤说明文字 */
+  flex-wrap: wrap;
   gap: 8px;
   width: 100%;
   padding: 12px 14px;
@@ -182,6 +194,15 @@ const classes = computed(() => [
 
 .t73-alert__title + .t73-alert__description {
   margin-top: 6px;
+}
+
+/* 动作区：排在文案右侧、竖向居中；文案仍吃掉剩余宽度 */
+.t73-alert__actions {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+  align-self: center;
+  gap: 8px;
 }
 
 .t73-alert__close {
