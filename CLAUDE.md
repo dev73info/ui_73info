@@ -8,8 +8,8 @@
 
 1. `pwd` 确认在本仓目录；一次只处理一个仓库，不跨仓批量提交。
 2. `git fetch origin` → `git status --porcelain` → `git branch --show-current`。
-3. 当前分支落在 `master` 上先停下：新建分支，不要在稳定线上直接改。
-4. 基线落后 `origin/master` 就先 `git switch master && git pull --ff-only`，
+3. 当前分支落在 `dev` / `master` 上先停下：新建分支，不要在稳定线上直接改。
+4. 基线落后 `origin/dev` 就先 `git switch dev && git pull --ff-only`，
    **不要从过期基线开工**（已 squash 合入的改动会以另一个 SHA 再带一遍）。
 5. 分支命名 `feat/<需求号>-<简称>` / `fix/…` / `chore/…` / `docs/…`；跨仓库需求在各仓用**同名**分支，
    一条分支只做一件事。
@@ -24,11 +24,11 @@
 
 ## 三、PR
 
-- **本仓例外：只有 `master`，没有 `dev`。** PR 的 base 写 `master`，并在 PR 正文里注明这条例外。
+- PR 的 base 写 `dev`；`hotfix/` 写 `master`。
 - 标题 `[需求号] 类型(范围): 中文简述`；正文按 `../docs/开发流程/PR模板.md` 五段填，
   写到仓库外的临时文件再 `--body-file` 传。
 - 门禁没跑绿前开 Draft；绿了、描述填全再请求审阅。
-- `master` 只能经 PR 合入：不直推、不 `--force`，作者不自审自合，无审阅结论不合并。
+- `dev` / `master` 只能经 PR 合入：不直推、不 `--force`，作者不自审自合，无审阅结论不合并。
 - 推稳定线、改 PR 的目标分支、改别人的分支之前**先问用户**。
 
 ## 四、本仓门禁
@@ -46,4 +46,4 @@
 - 消费方：`../user-client`（link 依赖，正在按耦合度分批迁入）、`../admin_client` 计划中。
   **破坏性改动（改 props、事件、插槽或样式令牌）必须先确认消费方**，并按需求号跨仓库同名分支一起改。
 - 设计令牌与主题变量是该库的唯一真源，宿主不要各自复写一套色值。
-- 组件注释与文案一律中文；界面文案纪律见根仓规则 `ui-copy`。
+- 组件注释与文案一律中文；界面文案纪律见根仓 `docs/规则/ui-copy.md`。
