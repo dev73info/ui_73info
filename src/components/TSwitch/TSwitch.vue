@@ -160,7 +160,7 @@ function onKeydown(event: KeyboardEvent): void {
   height: var(--73-switch-knob);
   border-radius: 50%;
   background: var(--73-surface-strong);
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.2);
+  box-shadow: var(--73-shadow-knob);
   transition: transform var(--73-transition);
 }
 
