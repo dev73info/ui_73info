@@ -4,15 +4,27 @@
 根目录本身是只放文档与配置的第 12 个仓库。跨工程约定以根仓 `../CLAUDE.md`、`../AGENTS.md`
 与 `../docs/开发流程/AI开发标准流程.md` 为准，**冲突以标准文档为准**；本文件只写本仓的差异项。
 
+## 〇、Claude 资产与权威顺序
+
+- 本仓的 Claude 资产**都入库、开会话自动加载**：`.claude/rules/`（规则四份）与 `.claude/skills/`（技能两个：
+  `gate` 跑门禁、`branch-and-merge` 开分支到合并一条龙）。新增规则放 `.claude/rules/`，
+  新增技能放 `.claude/skills/<name>/SKILL.md`；`.claude/` 下只入库这两处。
+- 权威顺序：根仓 `AGENTS.md`（事实）+ 根仓 `docs/开发流程/AI开发标准流程.md`（流程）> 本文件 >
+  `.claude/rules/` > `doc/规则/`（详细正文）。冲突时以更具体、更新的一方为准。
+- 跨仓约定的**正本在根仓 `.claude/rules/`**；本仓 `.claude/rules/` 是执行版副本，改跨仓规则时根仓与 6 个前端仓一起改。
+
 ## 一、开工（在本仓动手之前，包括「只是看看 / 改个文案」）
 
-1. `pwd` 确认在本仓目录；一次只处理一个仓库，不跨仓批量提交。
-2. `git fetch origin` → `git status --porcelain` → `git branch --show-current`。
-3. 当前分支落在 `dev` / `master` 上先停下：新建分支，不要在稳定线上直接改。
-4. 基线落后 `origin/dev` 就先 `git switch dev && git pull --ff-only`，
-   **不要从过期基线开工**（已 squash 合入的改动会以另一个 SHA 再带一遍）。
-5. 分支命名 `feat/<需求号>-<简称>` / `fix/…` / `chore/…` / `docs/…`；跨仓库需求在各仓用**同名**分支，
-   一条分支只做一件事。
+1. **先读** `.claude/rules/dev-workflow.md` 与 `.claude/rules/code-quality.md`；改界面文案还要看 `ui-copy.md`。
+2. `pwd` 确认在本仓目录；一次只处理一个仓库，不跨仓批量提交。
+3. `git fetch origin` → `git status --porcelain` → `git branch --show-current`。
+4. 当前分支落在 `develop` / `master` 上先停下：**新建分支**，不要在集成分支上直接改。
+5. 基线不是最新 `origin/develop` 就先 `git switch develop && git pull --ff-only`。
+   **不要从过期基线开工**：已 squash 合入的改动会以另一个 SHA 再带一遍，PR 会平白多出别人的文件。
+6. 分支从最新 `develop` 切（`hotfix/` 从 `master` 切），命名 `feat/<需求号>-<简称>` / `fix/…` /
+   `chore/…` / `docs/…`；跨仓库需求在各仓用**同名**分支，一条分支只做一件事。
+7. 做完的走向固定：分支 → 门禁绿 → PR(**base=`develop`**) → 独立审阅 PASS → squash 合并；
+   **AI 不给自己写 PASS，也不自己合并**（命令与检查单见 `.claude/skills/branch-and-merge/SKILL.md`）。
 
 ## 二、提交
 
@@ -24,11 +36,11 @@
 
 ## 三、PR
 
-- PR 的 base 写 `dev`；`hotfix/` 写 `master`。
+- PR 的 base 写 `develop`；`hotfix/` 写 `master`。
 - 标题 `[需求号] 类型(范围): 中文简述`；正文按 `../docs/开发流程/PR模板.md` 五段填，
   写到仓库外的临时文件再 `--body-file` 传。
 - 门禁没跑绿前开 Draft；绿了、描述填全再请求审阅。
-- `dev` / `master` 只能经 PR 合入：不直推、不 `--force`，作者不自审自合，无审阅结论不合并。
+- `develop` / `master` 只能经 PR 合入：不直推、不 `--force`，作者不自审自合，无审阅结论不合并。
 - 推稳定线、改 PR 的目标分支、改别人的分支之前**先问用户**。
 
 ## 四、本仓门禁
@@ -46,8 +58,10 @@
 - 消费方：`../user-client`（link 依赖，正在按耦合度分批迁入）、`../admin_client` 计划中。
   **破坏性改动（改 props、事件、插槽或样式令牌）必须先确认消费方**，并按需求号跨仓库同名分支一起改。
 - 设计令牌与主题变量是该库的唯一真源，宿主不要各自复写一套色值。
-- 组件注释与文案一律中文；界面文案纪律见根仓 `docs/规则/ui-copy.md`。
+- 组件注释与文案一律中文；界面文案纪律见根仓 `.claude/rules/ui-copy.md`。
 
 ## 跨仓需求
 
-涉及多个子工程时，用根仓 `scripts/xrepo.sh` 编排（清单在根仓 `docs/任务/<需求号>-*/xrepo/`，用法见根仓 `skills/xrepo/SKILL.md`）；本仓内仍按上述规则。
+根仓 `scripts/`（含 `xrepo`）已于 2026-10-22 删除，**没有跨仓编排脚本可用了**。
+涉及多个子工程时手工按仓操作：各仓从 `develop` 建**同名分支** → 各自门禁绿 → 各自开 PR(base=`develop`) →
+正文里互相贴链接；合并顺序按依赖来（先后端、再消费方前端）。根仓文档改动只 commit（根仓无远程、永不 push）。
