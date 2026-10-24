@@ -2,7 +2,7 @@
 /**
  * TDatePicker
  *
- * 接替 `<el-date-picker>`（user-client 里 2 处，都在实名认证表单里，
+ * 接替 `<el-date-picker>`（user_client 里 2 处，都在实名认证表单里，
  * 用 `type="date" value-format="YYYYMMDD" format="YYYY-MM-DD"`）。
  * 零依赖意味着日历面板、三级视图切换、区间选择都要自己写。
  *

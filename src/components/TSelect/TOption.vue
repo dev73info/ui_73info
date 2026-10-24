@@ -2,7 +2,7 @@
 /**
  * TOption
  *
- * 下拉里的一项。接替 `<el-option>`（user-client 里 84 处）。
+ * 下拉里的一项。接替 `<el-option>`（user_client 里 84 处）。
  *
  * ## 它做三件事
  *

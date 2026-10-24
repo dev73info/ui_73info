@@ -2,7 +2,7 @@
 /**
  * TInputNumber
  *
- * 接替 `<el-input-number>`（user-client 里 5 处：充值金额、提现金额、悬赏积分、积分转让）。
+ * 接替 `<el-input-number>`（user_client 里 5 处：充值金额、提现金额、悬赏积分、积分转让）。
  *
  * ## 规格来源
  *

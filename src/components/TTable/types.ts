@@ -1,7 +1,7 @@
 /**
  * TTable / TTableColumn 的属性与事件
  *
- * 取值范围由 user-client 的实际用法决定：只出现 `show-overflow-tooltip`(12)、
+ * 取值范围由 user_client 的实际用法决定：只出现 `show-overflow-tooltip`(12)、
  * `resizable`(8)、`fixed`(4)、`loading`(22)、`#empty`(8)、`row-key`(2)；
  * `sortable`、`type="selection"`、`type="index"`、展开行**一处都没有**，
  * 所以那些不做（清单见 `doc/架构.md` 末节）。

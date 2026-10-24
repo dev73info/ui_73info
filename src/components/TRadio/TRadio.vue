@@ -2,7 +2,7 @@
 /**
  * TRadio
  *
- * 接替 `<el-radio>`（user-client 里 7 处）。与 `TCheckbox` 同一套做法：
+ * 接替 `<el-radio>`（user_client 里 7 处）。与 `TCheckbox` 同一套做法：
  * 底下是真的 `<input type="radio">`，视觉上藏起来但留在无障碍树里。
  *
  * **组内必须用同名的原生 `radio`**，否则「↑↓ 在同一组里换选」这个浏览器自带的行为

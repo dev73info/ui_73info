@@ -2,7 +2,7 @@
 /**
  * TDescriptions
  *
- * 接替 `<el-descriptions>` + `<el-descriptions-item>`（user-client 里 1 + 15 处，
+ * 接替 `<el-descriptions>` + `<el-descriptions-item>`（user_client 里 1 + 15 处，
  * 用在违约案这类「一堆字段名值对」的详情块上）。
  *
  * ## 为什么是 `<dl>` + `dt`/`dd`，而不是每个字段一个 div

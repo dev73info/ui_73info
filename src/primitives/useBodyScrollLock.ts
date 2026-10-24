@@ -10,7 +10,7 @@
  *
  * ## 本项目的实际情况
  *
- * user-client 的滚动发生在 `App.vue` 外壳的 `el-scrollbar` 上（见设计规范第五节），
+ * user_client 的滚动发生在 `App.vue` 外壳的 `el-scrollbar` 上（见设计规范第五节），
  * `body` 本身通常不滚，`innerWidth - clientWidth` 算出来是 0，补偿那一步自然不生效。
  * 逻辑仍然保留：即便当前用不上，换宿主或页面变长时它就该起作用。
  */

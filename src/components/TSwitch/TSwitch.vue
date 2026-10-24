@@ -2,7 +2,7 @@
 /**
  * TSwitch
  *
- * 接替 `<el-switch>`（user-client 里 2 处：钱包的自动提现开关、权益中心的装备开关）。
+ * 接替 `<el-switch>`（user_client 里 2 处：钱包的自动提现开关、权益中心的装备开关）。
  *
  * ## 规格来源
  *
@@ -160,7 +160,7 @@ function onKeydown(event: KeyboardEvent): void {
   height: var(--73-switch-knob);
   border-radius: 50%;
   background: var(--73-surface-strong);
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.2);
+  box-shadow: var(--73-shadow-knob);
   transition: transform var(--73-transition);
 }
 

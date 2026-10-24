@@ -2,7 +2,7 @@
 /**
  * TAlert
  *
- * 接替 `<el-alert>`（user-client 里 10 处）。规格来自
+ * 接替 `<el-alert>`（user_client 里 10 处）。规格来自
  * `.dev-recharge-dialog__limit-alert`（`dev-wallet.css`），那是仓库里唯一一处
  * 把 alert 完整改写过的地方：
  *

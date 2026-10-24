@@ -2,7 +2,7 @@
 /**
  * TInput
  *
- * 接替 `<el-input>`（user-client 里 95 处）与 `<el-input>` 的 `clearable`
+ * 接替 `<el-input>`（user_client 里 95 处）与 `<el-input>` 的 `clearable`
  * / 前缀后缀那几种用法。
  *
  * ## 与表单自动对接

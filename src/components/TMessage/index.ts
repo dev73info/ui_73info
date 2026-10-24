@@ -12,7 +12,7 @@
  * }
  * ```
  *
- * 接替 `ElMessage`（user-client 里 7 处）与 `ElMessageBox`（2 处）。
+ * 接替 `ElMessage`（user_client 里 7 处）与 `ElMessageBox`（2 处）。
  * 容器从哪来、为什么提示与确认框是两套运行时，见 `manager.ts` 顶部。
  *
  * **这两个不注册成全局组件**：它们没有模板形态，`components` 映射里也不登记，

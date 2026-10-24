@@ -2,7 +2,7 @@
 /**
  * TButton
  *
- * 规格照搬 user-client 现有的 `.dev-btn`（`dev-base.css`）：36px 高、10px 圆角、
+ * 规格照搬 user_client 现有的 `.dev-btn`（`dev-base.css`）：36px 高、10px 圆角、
  * 13px/700、内边距 0 16px、悬浮**只加一层投影不提亮底色**。四处变体
  * （`.dev-btn--primary / --ghost / --gold / --danger`）在这里收成
  * `variant`（形状）× `tone`（颜色）两个轴。

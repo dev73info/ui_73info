@@ -24,3 +24,10 @@ logs
 *.log
 npm-debug.log*
 pnpm-debug.log*
+
+# Claude Code 项目配置：只入库规则与技能，本机设置（worktrees / launch.json 等）不入库
+.claude/*
+!.claude/rules/
+!.claude/rules/**
+!.claude/skills/
+!.claude/skills/**
