@@ -11,7 +11,7 @@
  *
  * ## 视觉口径来自宿主既有的 toast
  *
- * 结构对着 `user-client/src/components/AppToast.vue` + `src/styles/toast.css` 做：
+ * 结构对着 `user_client/src/components/AppToast.vue` + `src/styles/toast.css` 做：
  * 右下角、半透明语气色块 + 同色描边、粗体文案、常驻关闭按钮；≤640px 挪到顶部通栏。
  * 这样宿主把 55 处 `showToast` 换成 `TMessage` 时，看到的是同一个东西。
  *

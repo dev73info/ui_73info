@@ -15,7 +15,7 @@
 
 改 **props / 事件 / 插槽 / 样式令牌 / 组件名** 属于破坏性改动：
 
-1. 先确认消费方——目前 `../user-client` 以 `link:../ui_73info` 消费（`../admin_client` 计划中）；
+1. 先确认消费方——目前 `../user_client` 以 `link:../ui_73info` 消费（`../admin_client` 计划中）；
 2. 跨仓同名分支一起改，PR 正文互相贴链接；
 3. 宿主里跑一次 `pnpm type-check` 与 `pnpm test:ci` 作为联动证据，贴进本仓 PR。
 

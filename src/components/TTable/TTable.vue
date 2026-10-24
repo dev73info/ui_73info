@@ -2,7 +2,7 @@
 /**
  * TTable
  *
- * 接替 `<el-table>`（user-client 里 7 张表 / 66 处 `el-table-column`）。
+ * 接替 `<el-table>`（user_client 里 7 张表 / 66 处 `el-table-column`）。
  * 规格来自 `.dev-table`（`dev-base.css`）：
  *
  * ```css

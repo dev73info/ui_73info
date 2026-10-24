@@ -10,7 +10,7 @@
 
     // 【注意】这里刻意**没有** paths 映射。
     //
-    // user-client 自己的 vite.config.ts 里把 `@` 指向了 `user-client/src`。
+    // user_client 自己的 vite.config.ts 里把 `@` 指向了 `user_client/src`。
     // 本库是**发源码**的（宿主的 Vite 直接编译 `../ui_73info/src/**`），
     // 所以库内写 `@/xxx` 在宿主里会被解析到宿主自己的 src 去——在本地
     // `vue-tsc` 能过、一进入宿主就报「找不到模块」，是最难查的一类问题。

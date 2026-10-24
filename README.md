@@ -1,7 +1,7 @@
 # ui_73info
 
 73Info 自研 UI 组件库：**令牌驱动的多主题组件，零第三方 UI 依赖**。为替换
-`user-client` 里的 Element Plus 而建，架构上预留其他三个前端。
+`user_client` 里的 Element Plus 而建，架构上预留其他三个前端。
 
 - 一套主题 = 一组 `--73-*` 令牌的取值，包在 `[data-73-theme='…']` 下。
   **切主题就是在 `<html>` 上换一个属性，纯 CSS，不重渲染、不重新注入样式表。**
@@ -32,7 +32,7 @@ playground/           pnpm dev 起的预览页（端口 5180）
 但 link 的是源码而不是 `pkg/`，这样改了组件宿主的 HMR 立刻生效、不必重建）：
 
 ```bash
-# 在 user-client 里
+# 在 user_client 里
 pnpm add ui_73info@link:../ui_73info
 ```
 
@@ -82,7 +82,7 @@ import 'ui_73info/alias.css'
   `TMessageBox`（模态确认框，带队列）。
 - `pnpm type-check` 通过；`pnpm dev`（端口 5180）可打开 playground 逐项人工验证。
 
-**`user-client` 里实际渲染过的 Element 组件，除两处外全部有对应物**：
+**`user_client` 里实际渲染过的 Element 组件，除两处外全部有对应物**：
 `el-select-v2` 的虚拟化（改为「过滤后最多渲染 `maxVisibleOptions` 项」，默认 200，见下）
 与 `ElConfigProvider`（没有 locale 层）。
 
@@ -90,12 +90,12 @@ import 'ui_73info/alias.css'
 > 会让打开面板与每次输入都卡住。截断只对 `filterable` 生效，被截掉的项给出「继续输入」提示；
 > 不可过滤的下拉仍全量渲染，`maxVisibleOptions=0` 可关掉截断。
 
-**已接入 `user-client`**（2026-09-30）：link 依赖与 Vite 分块、样式引入顺序、
+**已接入 `user_client`**（2026-09-30）：link 依赖与 Vite 分块、样式引入顺序、
 按路由切主题（门户 / 开发者）都已完成并实测。迁移按耦合度分批推进：样板页 `BadgeCenterView`
 与**第一批 15 个页面**（`<el-*>` 只有 button / icon / tag 的那些）已迁完，
-`user-client` 里还剩 37 个文件带 `<el-*>`、约 950 处标签。
+`user_client` 里还剩 37 个文件带 `<el-*>`、约 950 处标签。
 
-未实现：`user-client` 其余页面尚未迁移（逐页推进，顺序见
+未实现：`user_client` 其余页面尚未迁移（逐页推进，顺序见
 [doc/开发指南.md](doc/开发指南.md) 第六节）；自动化视觉测试还没有；
 `alias.css` 这个旧变量名桥接层**刻意还没引**（理由见
 [doc/架构.md](doc/架构.md) 第七节）；其余差距清单见同文件第八节。

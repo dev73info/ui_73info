@@ -2,7 +2,7 @@
 /**
  * TTableColumn
  *
- * 一列。接替 `<el-table-column>`（user-client 里 66 处 / 40 个标签）。
+ * 一列。接替 `<el-table-column>`（user_client 里 66 处 / 40 个标签）。
  *
  * ## 它只是一个「声明」
  *

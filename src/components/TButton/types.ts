@@ -13,7 +13,7 @@ export interface TButtonProps {
   /**
    * 形状。默认 `outline`。
    *
-   * 与 user-client 现有类名的对应关系（迁移时是改名，不是重新设计）：
+   * 与 user_client 现有类名的对应关系（迁移时是改名，不是重新设计）：
    *
    * | 旧写法 | 新写法 |
    * | --- | --- |
@@ -42,7 +42,7 @@ export interface TButtonProps {
    *
    * 这是仓库里反复出现的一个形状——工作台各菜单页顶部的「刷新」按钮、
    * 卡头右侧的图标动作都是它（`.wb-toolbar__icon-btn` / `.dev-toolbar__icon-btn`
-   * 在 user-client 里有十几处）。不给这个属性时，调用方只能自己补
+   * 在 user_client 里有十几处）。不给这个属性时，调用方只能自己补
    * `width / padding` 两条 CSS，等于把同一个形状在每页重写一遍。
    *
    * **必须同时给 `aria-label`**：按钮里没有文字，读屏只能靠它。
@@ -54,7 +54,7 @@ export interface TButtonProps {
   /**
    * 渲染成什么元素/组件，默认 `button`。
    *
-   * 传 `RouterLink` 可以当链接按钮用——user-client 里 `.dev-btn` 本来就大量挂在
+   * 传 `RouterLink` 可以当链接按钮用——user_client 里 `.dev-btn` 本来就大量挂在
    * `RouterLink` 上（见 `dev-base.css` 该段的注释）。`to`、`href` 这类属性
    * 通过透传落到根元素上，不需要在这里重新声明一遍。
    */

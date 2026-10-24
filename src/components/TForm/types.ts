@@ -5,7 +5,7 @@ export interface TFormProps {
   /**
    * 表单数据对象。校验时按 `prop` 的点号路径从它里面取值。
    *
-   * **可以不传**：`user-client` 里有约二十处 `<el-form>` 本就只是排版容器
+   * **可以不传**：`user_client` 里有约二十处 `<el-form>` 本就只是排版容器
    * （几个控件按标签竖排，没有一份统一的表单对象），Element 的 `el-form`
    * 也允许不给 `model`。要求必传会逼着这些页面现造一个只为占位的空对象，
    * 所以这里跟 Element 一样按可选处理，缺省是空对象。

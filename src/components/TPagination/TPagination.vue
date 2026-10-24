@@ -2,7 +2,7 @@
 /**
  * TPagination
  *
- * 接替 `<el-pagination>`（user-client 里 21 处）。规格来自 `.dev-pager` 与 `.wb-pager`
+ * 接替 `<el-pagination>`（user_client 里 21 处）。规格来自 `.dev-pager` 与 `.wb-pager`
  * 两处完全相同的改写（`dev-base.css` / `portal-workbench.css`）：
  *
  * ```css

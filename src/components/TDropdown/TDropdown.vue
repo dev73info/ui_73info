@@ -3,7 +3,7 @@
  * TDropdown + TDropdownMenu + TDropdownItem
  *
  * 接替 `<el-dropdown>` / `<el-dropdown-menu>` / `<el-dropdown-item>`
- * （user-client 里 6 / 6 / 21 处）。规格来自仓库里三处菜单改写：
+ * （user_client 里 6 / 6 / 21 处）。规格来自仓库里三处菜单改写：
  *
  * ```css
  * /* .dev-resource-action-menu.el-popper —— 面板本体的口径 *\/

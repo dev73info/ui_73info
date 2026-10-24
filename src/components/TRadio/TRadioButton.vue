@@ -2,7 +2,7 @@
 /**
  * TRadioButton
  *
- * 按钮形态的单选，接替 `<el-radio-button>`（user-client 里 2 处，支付渠道选择）。
+ * 按钮形态的单选，接替 `<el-radio-button>`（user_client 里 2 处，支付渠道选择）。
  *
  * 规格来自 `.dev-recharge-dialog__channels .el-radio-button` 那一组改写
  * （`dev-wallet.css`）：

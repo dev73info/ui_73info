@@ -2,7 +2,7 @@
 /**
  * TTag
  *
- * 接替 user-client 里的三类东西：`.wb-badge`、`.dev-chip`、以及 Element 的
+ * 接替 user_client 里的三类东西：`.wb-badge`、`.dev-chip`、以及 Element 的
  * `<el-tag>`（25 处）。前两者的规格本来就完全相同——28px 高、999px 胶囊、
  * 12px/700、0 12px 内边距——这里收成一个组件。
  *

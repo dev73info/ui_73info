@@ -2,7 +2,7 @@
 /**
  * TCheckbox
  *
- * 接替 `<el-checkbox>`（user-client 里 5 处，包括「我已阅读并同意」这类协议勾选）。
+ * 接替 `<el-checkbox>`（user_client 里 5 处，包括「我已阅读并同意」这类协议勾选）。
  *
  * ## 为什么底下是真的 `<input type="checkbox">`
  *

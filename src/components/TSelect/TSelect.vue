@@ -2,7 +2,7 @@
 /**
  * TSelect
  *
- * 接替 `<el-select>`（user-client 里 58 处）+ `<el-option>`（84 处），
+ * 接替 `<el-select>`（user_client 里 58 处）+ `<el-option>`（84 处），
  * 也是 `<el-select-v2>` 的落点（虚拟化不做，见文末「与 Element 的差异」）。
  *
  * ## 规格来源
