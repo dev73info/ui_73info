@@ -2,7 +2,7 @@
 /**
  * TLoading
  *
- * 接替 Element 的 `v-loading` 指令。数了一遍 user-client 的用法：表格那几处已经被
+ * 接替 Element 的 `v-loading` 指令。数了一遍 user_client 的用法：表格那几处已经被
  * `TTable` 的 `loading` 属性接管，**剩下 16 处挂在普通容器上**（整页 main、统计条
  * `.dev-meta-strip`、面板 section、评论区列表、弹窗内的一小块），这个组件接的就是这 16 处。
  *

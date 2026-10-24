@@ -20,7 +20,7 @@ description: 在本仓跑质量门禁（类型 / lint / 单测 / 结构检查 / 
 | --- | --- | --- |
 | 类型 | `pnpm type-check` | `vue-tsc --build`；**本库没有 build 步骤，这是唯一静态校验入口** |
 | 单测 | `pnpm test` | `vitest run`，25 文件 / 152 条（含 7 条 `it.fails` 钉住的已知缺陷） |
-| 联动 | 在 `../user-client` 跑 `pnpm type-check` + `pnpm test:ci` | 宿主以 link 依赖消费本库源码，props / 事件 / 令牌破了宿主会先炸 |
+| 联动 | 在 `../user_client` 跑 `pnpm type-check` + `pnpm test:ci` | 宿主以 link 依赖消费本库源码，props / 事件 / 令牌破了宿主会先炸 |
 | lint / format | 暂无脚本 | 已知缺口：按仓库既有风格手写，不要引入新的格式化风格 |
 
 ## 三、按失败类别处置
@@ -44,4 +44,4 @@ description: 在本仓跑质量门禁（类型 / lint / 单测 / 结构检查 / 
 
 - 本库**发源码不发构建产物**，`package.json` 入口指向 `src/`，别改回去。
 - 令牌正本是 `src/styles/tokens.css`：本库内部也不许写裸色值。
-- 改 props / 事件 / 插槽 / 令牌前先确认消费方（`../user-client`），跨仓同名分支一起改。
+- 改 props / 事件 / 插槽 / 令牌前先确认消费方（`../user_client`），跨仓同名分支一起改。

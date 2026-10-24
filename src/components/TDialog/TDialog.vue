@@ -2,7 +2,7 @@
 /**
  * TDialog
  *
- * 接替 `<el-dialog>`（user-client 里 30 处）。**这个组件的价值几乎全在行为上**，
+ * 接替 `<el-dialog>`（user_client 里 30 处）。**这个组件的价值几乎全在行为上**，
  * 样式只是把令牌套上去：
  *
  * - 焦点陷阱（`useFocusTrap`）：Tab 在弹窗内循环、关闭后焦点还给触发它的按钮

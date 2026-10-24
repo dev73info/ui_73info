@@ -4,7 +4,7 @@
  * ## 来源与许可
  *
  * 这些 `d` 取自 **Element Plus Icons**（`@element-plus/icons-vue` v2.3.2，MIT 许可），
- * 只保留 `user-client` 实际用到的 59 个，内联进本库。
+ * 只保留 `user_client` 实际用到的 59 个，内联进本库。
  * 这样做的目的是把那个第三方依赖彻底去掉——本库的定位是「零第三方 UI 依赖」，
  * 而图标包虽然不含 Element 运行时，名字与归属上仍然是 Element 的一份依赖。
  * MIT 许可允许复制与再分发，版权归 Element Plus 团队所有。

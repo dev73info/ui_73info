@@ -2,7 +2,7 @@
 /**
  * TTooltip
  *
- * 纯文字提示气泡。user-client 里 `<el-tooltip>` 用量为 0（表格的
+ * 纯文字提示气泡。user_client 里 `<el-tooltip>` 用量为 0（表格的
  * `show-overflow-tooltip` 走的是原生 `title`），所以这个组件主要服务于
  * `ui_73info` 之后的页面，规格由令牌推导：
  *

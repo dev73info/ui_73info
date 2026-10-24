@@ -2,7 +2,7 @@
 /**
  * TRadioGroup
  *
- * 一组单选项，接替 `<el-radio-group>`（user-client 里 4 处）。
+ * 一组单选项，接替 `<el-radio-group>`（user_client 里 4 处）。
  *
  * 组负责给出 `name`，让组内原生 `radio` 共用一个名字——浏览器因此自带
  * 「↑↓ 在同一组里换选」的行为，不必自己实现方向键导航。

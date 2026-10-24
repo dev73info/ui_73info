@@ -7,7 +7,7 @@
  *
  * ## 为什么是 `position: fixed` + 视口坐标
  *
- * 换成「相对定位 + 文档坐标」就必须处理滚动容器的偏移链，而 user-client 的滚动发生在
+ * 换成「相对定位 + 文档坐标」就必须处理滚动容器的偏移链，而 user_client 的滚动发生在
  * 外壳的 `el-scrollbar` 上（`AGENTS.md` 第六节记过这一条：页面内不要再套滚动容器）。
  * 用 `fixed` 加视口坐标，锚点滚出视口时面板要重算 —— 代价是监听滚动，
  * 收益是不必知道滚动容器是谁，也不会被祖先的 `transform` 带跑。
@@ -235,7 +235,7 @@ export function useFloating(options: FloatingOptions): FloatingReturn {
 
   function startListening(): void {
     if (listening) return
-    // capture 阶段：user-client 的滚动发生在外壳的 el-scrollbar 内部容器上，
+    // capture 阶段：user_client 的滚动发生在外壳的 el-scrollbar 内部容器上，
     // 那个容器的滚动事件不冒泡到 window，只在捕获阶段能看到。
     window.addEventListener('scroll', schedule, true)
     window.addEventListener('resize', schedule)

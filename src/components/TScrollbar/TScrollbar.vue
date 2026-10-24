@@ -2,7 +2,7 @@
 /**
  * TScrollbar
  *
- * 接替 `<el-scrollbar>`（user-client 里真正用到组件形态的是工作台侧栏与外壳，
+ * 接替 `<el-scrollbar>`（user_client 里真正用到组件形态的是工作台侧栏与外壳，
  * 另有若干处是 `document.querySelector('.el-scrollbar__wrap')` 这样的字符串引用）。
  *
  * ## 类名刻意沿用 Element 的形状

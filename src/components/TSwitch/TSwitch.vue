@@ -2,7 +2,7 @@
 /**
  * TSwitch
  *
- * 接替 `<el-switch>`（user-client 里 2 处：钱包的自动提现开关、权益中心的装备开关）。
+ * 接替 `<el-switch>`（user_client 里 2 处：钱包的自动提现开关、权益中心的装备开关）。
  *
  * ## 规格来源
  *

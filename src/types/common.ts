@@ -6,7 +6,7 @@
  * 控件尺寸档。
  *
  * 只有两档，对应 `tokens.css` 里的 `--73-control-height`（36px）与
- * `--73-chip-height`（28px）。user-client 现状是各页各写 px，
+ * `--73-chip-height`（28px）。user_client 现状是各页各写 px，
  * 「同一种控件长得不一样」；这里刻意不提供 `lg`，避免又开出一档新高度。
  */
 export type ComponentSize = 'sm' | 'md'
