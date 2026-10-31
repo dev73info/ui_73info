@@ -6,19 +6,26 @@
    一律 `var(--73-*)`。这一条约束就是这一层存在的理由——user_client 里现有 3666 处
    颜色字面量、只有 925 处令牌引用，正是因为缺了这一层。
 
-   ## 两套主题，一套词汇
+   ## 五套主题，一套词汇
 
-   user_client 一个 SPA 里并存两套视觉体系（见 user_client/doc/设计规范.md 第一节），
-   对应这里的两个主题。**同名令牌在两套主题里取不同的值**，组件只认 `--73-*`，
-   不关心自己当前在哪一套主题下。
+   一套主题 = 一组同名 `--73-*` 令牌的取值。**同名令牌在不同主题里取不同的值**，
+   组件只认 `--73-*`，不关心自己当前在哪一套主题下。五套主题对应工作区四个前端的
+   既有色板（前两套同属 user_client），每一套都逐项照搬各自的源文件，没有重新设计：
 
-   | 主题 | 什么时候用 | 主色 |
+   | 主题 | 服务对象 | 主色 |
    | --- | --- | --- |
-   | `portal`（默认） | 首页、需求大厅、资源、社区、个人中心、工作台外壳 | `#1f4ad1` |
-   | `dev` | 开发者工作台、资源管理、需求详情、钱包 | `#1f4ad1` + 青 `#2aa6a4` + 金 `#b9812b` |
+   | `portal`（默认） | user_client 门户：首页、需求大厅、资源、社区、个人中心、工作台外壳 | `#1f4ad1` |
+   | `dev` | user_client 开发者：工作台、资源管理、需求详情、钱包 | `#1f4ad1` + 青 `#2aa6a4` + 金 `#b9812b` |
+   | `admin` | admin_client 管理后台（Element Plus 默认色板） | `#409eff` |
+   | `support` | support_client 客服端（Naive UI，低饱和青绿） | `#2ba88f` |
+   | `finance` | finance_client 财务端（墨绿 + 绿调中性色） | `#087f70` |
 
-   **只有两个主题。** 这里刻意没有第三个「工作台外壳」主题，因为门户工作台外壳
-   （`portal-workbench.css` 的 `--wb-*`）看着像第三套，实际不是一套完整色板：
+   前两套来自 `user_client/doc/设计规范.md` 第一节；后三套依次来自
+   `admin_client/doc/设计规范.md`、`support_client/doc/设计规范.md`、
+   `finance_client/doc/设计规范.md` 的配色一节，取值见本文件第 5–7 节。
+
+   **刻意没有「工作台外壳」主题。** 门户工作台外壳
+   （`portal-workbench.css` 的 `--wb-*`）看着像一套独立色板，实际不是：
 
    - 它只定义 10 个令牌——4 个尺寸 + 主色三件套（accent / accent-soft / accent-line）
      + 描边 + 弱化墨色 + 阴影。**没有背景、没有表面、没有正文墨色、没有状态色**；
@@ -29,17 +36,20 @@
      `MessagesView.vue` / `NotificationCenterView.vue` 直接印证了这个模型：
      它们按模式在 `profile-page`（门户体系）与 `dev-page`（开发者体系）之间切根类。
 
-   所以工作台外壳不是什么第三个主题，而是**「当前是哪个模式就用哪套」**；它之所以
+   所以工作台外壳不是一个独立主题，而是**「当前是哪个模式就用哪套」**；它之所以
    在两种模式下看着一样，是因为 `--wb-*` 那 10 个结构值当初被冻结成了 dev 的取值。
-   把它做成第三个可选主题会直接渲染错：门户模式的工作台显示绿/琥珀，而 `workbench`
+   把它做成可选主题会直接渲染错：门户模式的工作台显示绿/琥珀，而 `workbench`
    会给出青/金。完整推理见 doc/架构.md 第二节。
 
    ## 怎么切主题
    在 `<html>` 上换一个属性，纯 CSS，不需要 JS 重渲染：
 
    ```html
-   <html data-73-theme="dev">     <!-- 开发者体系 -->
-   <html data-73-theme="portal">  <!-- 门户体系（也是不写该属性时的默认值） -->
+   <html data-73-theme="dev">      <!-- 开发者体系 -->
+   <html data-73-theme="admin">    <!-- 管理后台 -->
+   <html data-73-theme="support">  <!-- 客服端 -->
+   <html data-73-theme="finance">  <!-- 财务端 -->
+   <html data-73-theme="portal">   <!-- 门户体系（也是不写该属性时的默认值） -->
    ```
 
    `applyTheme()`（`src/theme/index.ts`）封装了这个动作；挂在子树上的 `[data-73-theme]`
@@ -61,7 +71,7 @@
 /* ============================================================================
    1. 与主题无关的令牌
    ----------------------------------------------------------------------------
-   尺寸、字号、圆角、动效、层级、模糊半径。两套主题共用，所以在 `:root` 上声明一次。
+   尺寸、字号、圆角、动效、层级、模糊半径。各主题共用，所以在 `:root` 上声明一次。
    值来自 user_client 现状，不重新设计；圆角档位与《设计规范》第四节登记的一致。
    ============================================================================ */
 :root {
@@ -106,7 +116,7 @@
 
   /* --- 中性投影 ---
      开关滑块那一道 1px 投影是中性色、与主题无关（原值写死在 TSwitch 里，违反「组件层禁止裸色值」），
-     登记成令牌，两套主题共用。 */
+     登记成令牌，各主题共用。 */
   --73-shadow-knob: 0 1px 3px rgba(15, 23, 42, 0.2);
 
   /* --- 层级 ---
@@ -137,7 +147,7 @@
   --73-panel-min-width: 112px;
 
   /* --- 表格 ---
-     各档的**公式**两套主题相同，基色随主题走，所以取值统一放在下面第 2 节。 */
+     各档的**公式**各主题相同，基色随主题走，所以取值统一放在下面第 2 节。 */
 
   /* --- 开关 --- */
   --73-switch-width: 44px;
@@ -157,7 +167,7 @@
 /* ============================================================================
    2. 跨主题派生档位（公式固定，基色随主题）
    ----------------------------------------------------------------------------
-   这一节的表达式两套主题**完全相同**，只是引用的基色（`--73-bg` / `--73-accent`
+   这一节的表达式在所有主题下**完全相同**，只是引用的基色（`--73-bg` / `--73-accent`
    / `--73-info`）在哪个主题下取值不同，所以写一次即可。
 
    选择器带 `[data-73-theme]`：这样把主题属性挂在子树（而不是 `<html>`）上时，
@@ -206,7 +216,7 @@
 
   /* 浮层提示（tooltip）：深底浅字。仓库里没有登记过这一档
      （`<el-tooltip>` 用量为 0），按「正文墨色的 92%」从已有基色算，
-     两套主题各自得到符合自身墨色的一支深底。 */
+     每套主题各自得到符合自身墨色的一支深底。 */
   --73-tooltip-bg: color-mix(in srgb, var(--73-ink) 92%, transparent);
   --73-tooltip-ink: var(--73-ink-inverse);
 }
@@ -384,4 +394,230 @@
   --73-font-family:
     'IBM Plex Sans', 'PingFang SC', 'Noto Sans SC', 'Hiragino Sans GB', 'Microsoft YaHei',
     sans-serif;
+}
+
+/* ============================================================================
+   5. 主题：admin
+   ----------------------------------------------------------------------------
+   色值来源：admin_client 的 doc/设计规范.md 第二节。管理后台没有自己的色板文件，
+   主色是 **Element Plus 默认的 `#409eff`，从未被覆盖**；结构色是 `#f5f7fa` 内容底、
+   `#ebeef5` 描边、`#303133 / #606266 / #909399 / #c0c4cc` 四级文字。
+
+   状态色同样是 Element Plus 默认值（成功 `#67c23a` / 警示 `#e6a23c` /
+   危险 `#f56c6c`），浅底取各自登记的 light-9，深字取 dark-2——这一档是 EP 自己
+   登记过的，不是这里算出来的。描边档与其余主题同口径：基色 32% 透明度。
+   ============================================================================ */
+[data-73-theme='admin'] {
+  /* --- 背景与表面 --- */
+  --73-bg: #f5f7fa;
+  --73-bg-soft: #fafafa;
+  --73-surface: #ffffff;
+  --73-surface-strong: #ffffff;
+  --73-inset: #f5f7fa;
+
+  /* --- 描边 --- */
+  --73-border: #dcdfe6; /* --el-border-color */
+  --73-border-soft: #ebeef5; /* --el-border-color-lighter */
+  --73-border-hover: rgba(64, 158, 255, 0.32); /* 与其余主题同一条「主色 32%」口径 */
+
+  /* --- 文字 --- */
+  --73-ink: #303133; /* --el-text-color-primary */
+  --73-ink-soft: #606266; /* --el-text-color-regular */
+  --73-ink-muted: #909399; /* --el-text-color-secondary */
+  --73-ink-placeholder: #a8abb2; /* --el-text-color-placeholder */
+  --73-ink-disabled: #c0c4cc; /* --el-text-color-disabled */
+  --73-ink-inverse: #ffffff;
+
+  /* --- 强调色 --- */
+  --73-accent: #409eff;
+  --73-accent-soft: #ecf5ff; /* --el-color-primary-light-9 */
+  --73-accent-line: #a0cfff; /* --el-color-primary-light-5 */
+  /* 管理端主按钮是平色（EP 默认），没有门户侧那个渐变 */
+  --73-accent-gradient: linear-gradient(135deg, #409eff, #409eff);
+  --73-accent-contrast: #ffffff;
+
+  /* --- 状态色：Element Plus 默认三支 --- */
+  --73-success: #67c23a;
+  --73-success-soft: #f0f9eb; /* --el-color-success-light-9 */
+  --73-success-line: color-mix(in srgb, var(--73-success) 32%, transparent);
+  --73-success-text: #529b2e; /* --el-color-success-dark-2 */
+
+  --73-warning: #e6a23c;
+  --73-warning-soft: #fdf6ec; /* --el-color-warning-light-9 */
+  --73-warning-line: color-mix(in srgb, var(--73-warning) 32%, transparent);
+  --73-warning-text: #b88230; /* --el-color-warning-dark-2 */
+
+  --73-danger: #f56c6c;
+  --73-danger-soft: #fef0f0; /* --el-color-danger-light-9 */
+  --73-danger-line: color-mix(in srgb, var(--73-danger) 32%, transparent);
+  --73-danger-text: #c45656; /* --el-color-danger-dark-2 */
+
+  --73-info: #909399;
+
+  /* --- 滚动条：中性灰，与 EP 的滚动条同一套观感 --- */
+  --73-scrollbar-thumb: color-mix(in srgb, var(--73-ink-muted) 42%, transparent);
+  --73-scrollbar-thumb-hover: color-mix(in srgb, var(--73-ink-muted) 62%, transparent);
+
+  /* --- 阴影：卡片那一档取自 `.admin-route-view .el-card` 的登记值，刻意很淡 --- */
+  --73-shadow-card: 0 14px 34px rgba(15, 23, 42, 0.04);
+  --73-shadow-card-hover: 0 18px 40px rgba(15, 23, 42, 0.08);
+  --73-shadow-control: 0 10px 22px rgba(64, 158, 255, 0.22);
+  --73-shadow-dialog: 0 20px 48px rgba(15, 23, 42, 0.16);
+  --73-shadow-panel: 0 18px 36px rgba(15, 23, 42, 0.12);
+  --73-dialog-veil: rgba(15, 23, 42, 0.16);
+
+  /* --- 字体：Element Plus 默认栈 --- */
+  --73-font-family:
+    'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', Arial,
+    sans-serif;
+}
+
+/* ============================================================================
+   6. 主题：support
+   ----------------------------------------------------------------------------
+   色值来源：support_client 的 doc/设计规范.md 第二节。主色是**刻意选定的低饱和青绿
+   `#2ba88f`**——客服要长时间盯屏，配色以低疲劳为先，并与其余三端的蓝色体系一眼可分。
+   hover 与 pressed 取 `themeOverrides` 里的 `#3fbc9d` / `#1f8f76`。
+
+   中性灰沿用 Naive UI / Element Plus 共用的那一套（`#303133 / #606266 / #909399 /
+   #c0c4cc` 与 `#f5f7fa / #ebeef5`），状态色取 Naive UI 的默认值
+   （成功 `#18a058`、警示 `#f0a020`、错误 `#d03050`）。
+   ============================================================================ */
+[data-73-theme='support'] {
+  /* --- 背景与表面 --- */
+  --73-bg: #f5f7fa;
+  --73-bg-soft: #fafafa;
+  --73-surface: #ffffff;
+  --73-surface-strong: #ffffff;
+  --73-inset: #f5f7fa;
+
+  /* --- 描边 --- */
+  --73-border: #ebeef5;
+  --73-border-soft: #eef1f6;
+  --73-border-hover: rgba(43, 168, 143, 0.32);
+
+  /* --- 文字 --- */
+  --73-ink: #303133;
+  --73-ink-soft: #606266;
+  --73-ink-muted: #909399;
+  --73-ink-placeholder: #c0c4cc;
+  --73-ink-disabled: #dcdfe6;
+  --73-ink-inverse: #ffffff;
+
+  /* --- 强调色 --- */
+  --73-accent: #2ba88f;
+  --73-accent-soft: rgba(43, 168, 143, 0.1);
+  --73-accent-line: rgba(43, 168, 143, 0.32);
+  /* 客服端主按钮是平色，没有门户侧那个渐变 */
+  --73-accent-gradient: linear-gradient(135deg, #2ba88f, #2ba88f);
+  --73-accent-contrast: #ffffff;
+
+  /* --- 状态色：Naive UI 默认三支 --- */
+  --73-success: #18a058;
+  --73-success-soft: rgba(24, 160, 88, 0.1);
+  --73-success-line: color-mix(in srgb, var(--73-success) 32%, transparent);
+  --73-success-text: #0c7a43; /* successColorPressed */
+
+  --73-warning: #f0a020;
+  --73-warning-soft: rgba(240, 160, 32, 0.12);
+  --73-warning-line: color-mix(in srgb, var(--73-warning) 32%, transparent);
+  --73-warning-text: #c87d0a; /* warningColorPressed */
+
+  --73-danger: #d03050;
+  --73-danger-soft: rgba(208, 48, 80, 0.1);
+  --73-danger-line: color-mix(in srgb, var(--73-danger) 32%, transparent);
+  --73-danger-text: #ab1f3d; /* errorColorPressed */
+
+  --73-info: #909399;
+
+  /* --- 滚动条：中性灰 --- */
+  --73-scrollbar-thumb: color-mix(in srgb, var(--73-ink-muted) 42%, transparent);
+  --73-scrollbar-thumb-hover: color-mix(in srgb, var(--73-ink-muted) 62%, transparent);
+
+  /* --- 阴影 --- */
+  --73-shadow-card: 0 14px 34px rgba(15, 23, 42, 0.06);
+  --73-shadow-card-hover: 0 18px 40px rgba(15, 23, 42, 0.1);
+  --73-shadow-control: 0 10px 22px rgba(43, 168, 143, 0.22);
+  --73-shadow-dialog: 0 20px 48px rgba(15, 23, 42, 0.16);
+  --73-shadow-panel: 0 18px 36px rgba(15, 23, 42, 0.12);
+  --73-dialog-veil: rgba(15, 23, 42, 0.16);
+
+  /* --- 字体：support_client 的 `body` 字体栈 --- */
+  --73-font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB',
+    'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+/* ============================================================================
+   7. 主题：finance
+   ----------------------------------------------------------------------------
+   色值来源：finance_client 的 doc/设计规范.md 第二节（`src/style.css` 的 `:root`，
+   全端唯一来源）。主色墨绿 `#087f70`，页面底色带绿调 `#edf2ee`，正文是墨绿黑
+   `#18342d`——整端刻意与其他三端的蓝 / 青绿体系区分开。
+
+   这一套的「正向」就是主色本身（规范写明：正向 / 主操作 / 已完成 → `--teal`），
+   所以 success 与 accent 同色；「中性信息」是一支独立的蓝 `#3974b9`，覆盖 info。
+   源文件没有登记深字与占位符的档位，按基色压暗或提亮得出，已在注释里标出。
+   ============================================================================ */
+[data-73-theme='finance'] {
+  /* --- 背景与表面 --- */
+  --73-bg: #edf2ee; /* --canvas */
+  --73-bg-soft: #f7faf7; /* --panel-soft */
+  --73-surface: rgba(255, 255, 255, 0.82); /* .panel 的白底 0.82 */
+  --73-surface-strong: #ffffff; /* --panel */
+  --73-inset: #f7faf7;
+
+  /* --- 描边 --- */
+  --73-border: #dfe8e3; /* --line */
+  --73-border-soft: rgba(223, 232, 227, 0.72);
+  --73-border-hover: rgba(8, 127, 112, 0.32);
+
+  /* --- 文字 --- */
+  --73-ink: #18342d; /* --ink */
+  --73-ink-soft: #567069; /* --ink-soft */
+  --73-ink-muted: #82938d; /* --muted */
+  --73-ink-placeholder: #a3b3ad; /* 源文件未登记，按 --muted 提亮得出 */
+  --73-ink-disabled: #c4d1cc;
+  --73-ink-inverse: #ffffff;
+
+  /* --- 强调色 --- */
+  --73-accent: #087f70; /* --teal */
+  --73-accent-soft: #e0f2ed; /* --teal-wash */
+  --73-accent-line: rgba(8, 127, 112, 0.32);
+  /* 财务端主按钮是平色 */
+  --73-accent-gradient: linear-gradient(135deg, #087f70, #087f70);
+  --73-accent-contrast: #ffffff;
+
+  /* --- 状态色：青绿 / 金 / 珊瑚 --- */
+  --73-success: #087f70; /* 规范：正向 / 主操作 / 已完成 → --teal */
+  --73-success-soft: #e0f2ed; /* --teal-wash */
+  --73-success-line: color-mix(in srgb, var(--73-success) 32%, transparent);
+  --73-success-text: #075f57; /* --teal-deep */
+
+  --73-warning: #ad7c2e; /* --gold */
+  --73-warning-soft: #f8efda; /* --gold-wash */
+  --73-warning-line: color-mix(in srgb, var(--73-warning) 32%, transparent);
+  --73-warning-text: #8a6325; /* 源文件未登记深字档，按基色压暗得出 */
+
+  --73-danger: #c85f48; /* --coral */
+  --73-danger-soft: #fbe9e4; /* --coral-wash */
+  --73-danger-line: color-mix(in srgb, var(--73-danger) 32%, transparent);
+  --73-danger-text: #a94a34; /* 源文件未登记深字档，按基色压暗得出 */
+
+  --73-info: #3974b9; /* --blue：财务端的信息色是一支独立的蓝 */
+
+  /* --- 滚动条：绿调中性色 --- */
+  --73-scrollbar-thumb: color-mix(in srgb, var(--73-ink-muted) 42%, transparent);
+  --73-scrollbar-thumb-hover: color-mix(in srgb, var(--73-ink-muted) 62%, transparent);
+
+  /* --- 阴影：取自 `:root` 的 --shadow / --shadow-soft（带绿调，不是纯灰） --- */
+  --73-shadow-card: 0 16px 34px rgba(34, 65, 55, 0.07);
+  --73-shadow-card-hover: 0 20px 44px rgba(34, 65, 55, 0.1);
+  --73-shadow-control: 0 10px 22px rgba(8, 127, 112, 0.22);
+  --73-shadow-dialog: 0 20px 48px rgba(34, 65, 55, 0.18);
+  --73-shadow-panel: 0 18px 36px rgba(34, 65, 55, 0.12);
+  --73-dialog-veil: rgba(24, 52, 45, 0.16);
+
+  /* --- 字体：finance_client 的 `body` 字体栈 --- */
+  --73-font-family: 'Space Grotesk', 'Noto Sans SC', 'PingFang SC', sans-serif;
 }

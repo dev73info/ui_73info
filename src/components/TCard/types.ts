@@ -8,7 +8,7 @@ export interface TCardProps {
    *
    * 开发者侧的卡片不做悬浮抬升（`--dev-shadow` 只有一个值），门户侧有
    * `--portal-shadow-hover`；令牌层把两档都给了，组件照读，所以同一个开关
-   * 在两套主题下各自表现正确。
+   * 在所有主题下各自表现正确。
    */
   hoverable?: boolean
   /**

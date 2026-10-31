@@ -5,10 +5,22 @@
  * 所以「切主题」就是在根元素上换一个属性值——纯 CSS，没有 JS 重算，也没有
  * 「把样式表重新注入一遍」那种做法。这里只提供这个动作的封装与当前值的一份响应式镜像。
  *
- * ## 只有两个主题
+ * ## 五套主题
  *
- * `portal` 与 `dev`，对应 `user_client/doc/设计规范.md` 第一节登记的两套视觉体系。
- * 这里**刻意没有**第三个「工作台外壳」主题：`--wb-*` 只定义 10 个令牌（尺寸、主色三件套、
+ * 一套主题 = `tokens.css` 里一组 `--73-*` 的取值，包在 `[data-73-theme='…']` 选择器下。
+ * 五套主题对应工作区四个前端各自的既有色板（前两套同属 user_client）：
+ *
+ * | 主题 | 服务对象 | 主色 |
+ * | --- | --- | --- |
+ * | `portal`（默认） | user_client 门户 | `#1f4ad1` |
+ * | `dev` | user_client 开发者 | `#1f4ad1` + 青 + 金 |
+ * | `admin` | admin_client 管理后台 | `#409eff` |
+ * | `support` | support_client 客服端 | `#2ba88f` |
+ * | `finance` | finance_client 财务端 | `#087f70` |
+ *
+ * 所有主题共用同一套令牌名，组件只认 `--73-*`，不关心自己当前在哪套主题下。
+ *
+ * 这里**刻意没有**「工作台外壳」主题：`--wb-*` 只定义 10 个令牌（尺寸、主色三件套、
  * 描边、弱化墨色、阴影），背景与表面沿用门户侧，状态色跟随当前模式。把它建模成
  * 独立主题会在门户模式下渲染出开发者侧的青与金。完整推理见 `tokens.css` 顶部与
  * `doc/架构.md` 第二节。
@@ -26,8 +38,8 @@ import { readonly, ref, type Ref } from 'vue'
 /** 承载主题的 HTML 属性名 */
 export const THEME_ATTRIBUTE = 'data-73-theme'
 
-/** 可选主题名。只有两个，理由见文件顶部。 */
-export const THEMES = ['portal', 'dev'] as const
+/** 可选主题名。五套，对应四个前端各自的既有色板，理由见文件顶部。 */
+export const THEMES = ['portal', 'dev', 'admin', 'support', 'finance'] as const
 
 export type ThemeName = (typeof THEMES)[number]
 
