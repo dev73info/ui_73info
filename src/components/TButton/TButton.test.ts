@@ -36,4 +36,14 @@ describe('TButton', () => {
     expect(wrapper.classes()).toContain('t73-button--solid')
     expect(wrapper.classes()).toContain('t73-button--tone-accent')
   })
+
+  it('icon-only 落到类名上并原样保留 aria-label', () => {
+    const wrapper = mount(TButton, {
+      props: { iconOnly: true, tone: 'accent' },
+      attrs: { 'aria-label': '刷新' },
+    })
+
+    expect(wrapper.classes()).toContain('t73-button--icon-only')
+    expect(wrapper.attributes('aria-label')).toBe('刷新')
+  })
 })

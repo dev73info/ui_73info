@@ -258,6 +258,32 @@ function onClick(event: MouseEvent): void {
   background: var(--t73-btn-soft);
 }
 
+/* --- icon-only：裸图标 ---
+   图标按钮不放「一个装着图标的小方块」：没有边框、没有底色，只有图标本身的颜色。
+   这一组写在所有变体之后、特异性也更高，所以对 icon-only 一律生效——调用方只需要
+   用 tone 选颜色，variant 在 icon-only 下不再区分外观。
+   悬浮 / 键盘聚焦给一层浅底做反馈；焦点环保留——没有边框的按钮更容易丢焦点，
+   键盘用户靠它。 */
+.t73-button.t73-button--icon-only {
+  background: transparent;
+  background-image: none;
+  border-color: transparent;
+  box-shadow: none;
+  color: var(--t73-btn-text);
+}
+
+.t73-button.t73-button--icon-only:not(.t73-button--disabled):hover {
+  background: var(--t73-btn-soft);
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.t73-button.t73-button--icon-only:focus-visible {
+  background: var(--t73-btn-soft);
+  border-color: transparent;
+  box-shadow: var(--73-focus-ring);
+}
+
 /* --- 前缀/后缀与转圈 --- */
 .t73-button__affix {
   display: inline-flex;
