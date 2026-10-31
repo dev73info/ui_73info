@@ -419,7 +419,7 @@ const alertClosed = ref(false)
             />
           </svg></TIcon>
         </TButton>
-        <TButton icon-only tone="accent" variant="solid" aria-label="强调档图标按钮">
+        <TButton icon-only tone="accent" aria-label="强调档图标按钮">
           <TIcon :size="14"><svg viewBox="0 0 16 16">
             <path
               d="M8 4v8M4 8h8"
@@ -431,7 +431,8 @@ const alertClosed = ref(false)
           </svg></TIcon>
         </TButton>
         <span class="hint-inline">
-          正方形：36px（md）/ 28px（sm），触屏档撑到 44px。必须同时给 <code>aria-label</code>
+          裸图标：36px（md）/ 28px（sm），触屏档撑到 44px；无边框与底色，颜色由 tone
+          决定。必须同时给 <code>aria-label</code>
         </span>
       </div>
 
