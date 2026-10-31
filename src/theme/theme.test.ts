@@ -1,5 +1,13 @@
 import { afterEach, describe, expect, it } from 'vitest'
-import { DEFAULT_THEME, THEME_ATTRIBUTE, applyTheme, getTheme, syncThemeFromDOM } from './index'
+import {
+  DEFAULT_THEME,
+  THEME_ATTRIBUTE,
+  THEMES,
+  applyTheme,
+  getTheme,
+  isThemeName,
+  syncThemeFromDOM,
+} from './index'
 
 afterEach(() => {
   document.documentElement.removeAttribute(THEME_ATTRIBUTE)
@@ -10,10 +18,17 @@ describe('主题运行时', () => {
     expect(getTheme()).toBe(DEFAULT_THEME)
   })
 
-  it('applyTheme 把主题写到 <html> 上并可读回', () => {
-    applyTheme('dev')
-    expect(document.documentElement.getAttribute(THEME_ATTRIBUTE)).toBe('dev')
-    expect(getTheme()).toBe('dev')
+  it('五套主题都能应用并读回', () => {
+    for (const theme of THEMES) {
+      applyTheme(theme)
+      expect(document.documentElement.getAttribute(THEME_ATTRIBUTE)).toBe(theme)
+      expect(getTheme()).toBe(theme)
+    }
+  })
+
+  it('主题清单覆盖四个前端：portal / dev / admin / support / finance', () => {
+    expect([...THEMES]).toEqual(['portal', 'dev', 'admin', 'support', 'finance'])
+    expect(THEMES.every((theme) => isThemeName(theme))).toBe(true)
   })
 
   it('不认识的主题值回落为默认主题', () => {

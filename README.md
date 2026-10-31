@@ -42,7 +42,7 @@ import 'ui_73info/styles.css'
 import { applyTheme, TMessage } from 'ui_73info'
 import './styles/user.css'
 
-applyTheme('dev')            // 或 'portal'
+applyTheme('dev')            // 或 'portal'（默认）/ 'admin' / 'support' / 'finance'
 TMessage.success('已保存')    // 命令式提示，不占模板
 ```
 
@@ -67,7 +67,7 @@ import 'ui_73info/alias.css'
 
 已实现：
 
-- **令牌层**：`portal` / `dev` 两套主题，加上与主题无关的尺寸、圆角、字号、层级档位。
+- **令牌层**：`portal` / `dev` / `admin` / `support` / `finance` 五套主题（覆盖四个前端的既有色板），加上与主题无关的尺寸、圆角、字号、层级档位。
 - **行为原语**：`useFloating`（定位引擎）、`useOverlay`（开合）、`useListbox`（列表键盘导航）、
   `useFocusTrap`、`useDismissable`、`useBodyScrollLock`、`useId`。
 - **组件（23 个目录 / 32 个模板组件）**：

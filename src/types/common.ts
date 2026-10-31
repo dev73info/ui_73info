@@ -25,7 +25,7 @@ export type ComponentSize = 'sm' | 'md'
  * | `info` | `--73-ink-muted` | 灰 `#64748b` | 灰 `#64748b` |
  * | `neutral` | `--73-ink-soft` | 墨 `#52627a` | 墨 `#475569` |
  *
- * 注意 `success` 与 `warning` 在两套主题下**不是同一个颜色族**（开发者侧是青与金，
+ * 注意 `success` 与 `warning` 在 user_client 的两套主题下**不是同一个颜色族**（开发者侧是青与金，
  * 不是绿与琥珀）。这正是主题该干的事，调用方只管写语义。
  */
 export type Tone = 'accent' | 'success' | 'warning' | 'danger' | 'info' | 'neutral'
