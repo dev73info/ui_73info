@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /**
- * playground：把每个组件、每档语义色、两套主题都摆出来，用来肉眼比对。
+ * playground：把每个组件、每档语义色、五套主题都摆出来，用来肉眼比对。
  *
  * 它不是文档站，刻意不做导航与折叠——目的是「一屏看完、切主题时盯着看变化」。
  * 区块按**族**排（基础 / 表单 / 浮层 / 数据 / 反馈），与 `doc/架构.md` 的清单一致，
@@ -72,6 +72,9 @@ import {
 const THEMES: Array<{ value: ThemeName; label: string }> = [
   { value: 'portal', label: 'portal（门户，默认）' },
   { value: 'dev', label: 'dev（开发者）' },
+  { value: 'admin', label: 'admin（管理后台）' },
+  { value: 'support', label: 'support（客服端）' },
+  { value: 'finance', label: 'finance（财务端）' },
 ]
 
 const theme = ref<ThemeName>('portal')
@@ -80,6 +83,23 @@ function switchTheme(next: ThemeName): void {
   theme.value = next
   applyTheme(next)
 }
+
+/**
+ * 色板演示：只列有语义的几档。色块一律 `var(--73-*)`——它自己也是这套约定的
+ * 消费方，写死任何色值都会让「切主题时一起变」失效。
+ */
+const PALETTE: Array<{ label: string; token: string }> = [
+  { label: '强调', token: '--73-accent' },
+  { label: '成功', token: '--73-success' },
+  { label: '警示', token: '--73-warning' },
+  { label: '危险', token: '--73-danger' },
+  { label: '信息', token: '--73-info' },
+  { label: '正文', token: '--73-ink' },
+  { label: '次要文字', token: '--73-ink-muted' },
+  { label: '页面底色', token: '--73-bg' },
+  { label: '表面', token: '--73-surface' },
+  { label: '描边', token: '--73-border' },
+]
 
 const TONES: Tone[] = ['accent', 'success', 'warning', 'danger', 'info', 'neutral']
 /** 按钮与标签的形状档位不同：标签没有 text 变体。分成两个常量，别共用。 */
@@ -308,9 +328,10 @@ const alertClosed = ref(false)
     <header class="page__head">
       <h1>ui_73info playground</h1>
       <p class="page__lead">
-        切主题看同一个组件的颜色变化。重点看<strong>成功</strong>与<strong>警示</strong>：
-        portal 下是绿与琥珀，dev 下是青与金。表单类控件在任何主题下都能 Tab 到达、
-        回车提交。
+        五套主题对应四个前端的既有色板：portal / dev 来自 user_client，admin 是管理后台的
+        Element Plus 蓝，support 是客服端的青绿，finance 是财务端的墨绿。切主题看同一组组件的
+        颜色变化——重点看<strong>成功</strong>与<strong>警示</strong>：portal 下是绿与琥珀，
+        dev 下是青与金。表单类控件在任何主题下都能 Tab 到达、回车提交。
       </p>
       <div class="theme-switch">
         <TButton
@@ -325,6 +346,20 @@ const alertClosed = ref(false)
         </TButton>
       </div>
     </header>
+
+    <TCard title="色板" description="当前主题下的令牌取值，切换主题时一起变">
+      <div class="palette">
+        <div v-for="item in PALETTE" :key="item.token" class="palette__item">
+          <span
+            class="palette__chip"
+            :style="{ background: `var(${item.token})` }"
+            aria-hidden="true"
+          />
+          <span class="palette__label">{{ item.label }}</span>
+          <code class="palette__token">{{ item.token }}</code>
+        </div>
+      </div>
+    </TCard>
 
     <!-- ==================== 基础 ==================== -->
 
@@ -384,7 +419,7 @@ const alertClosed = ref(false)
             />
           </svg></TIcon>
         </TButton>
-        <TButton icon-only tone="accent" variant="solid" aria-label="强调档图标按钮">
+        <TButton icon-only tone="accent" aria-label="强调档图标按钮">
           <TIcon :size="14"><svg viewBox="0 0 16 16">
             <path
               d="M8 4v8M4 8h8"
@@ -396,7 +431,8 @@ const alertClosed = ref(false)
           </svg></TIcon>
         </TButton>
         <span class="hint-inline">
-          正方形：36px（md）/ 28px（sm），触屏档撑到 44px。必须同时给 <code>aria-label</code>
+          裸图标：36px（md）/ 28px（sm），触屏档撑到 44px；无边框与底色，颜色由 tone
+          决定。必须同时给 <code>aria-label</code>
         </span>
       </div>
 
@@ -828,7 +864,7 @@ const alertClosed = ref(false)
 
     <!-- ==================== 反馈 ==================== -->
 
-    <TCard title="TAlert" description="浅底 + 描边；成功与警示在两套主题下不是同一支颜色">
+    <TCard title="TAlert" description="浅底 + 描边；成功与警示在不同主题下不是同一支颜色">
       <div class="stack">
         <TAlert title="这是一条信息提示" tone="info" />
         <TAlert title="保存成功" description="补充说明放在第二行。" tone="success" />
@@ -920,6 +956,35 @@ const alertClosed = ref(false)
   min-width: 96px;
   color: var(--73-ink-muted);
   font-size: var(--73-font-size-sm);
+}
+
+/* 色板：色块本身取令牌值，边框让白色/半透明的档位也能看出边界 */
+.palette {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.palette__item {
+  display: grid;
+  gap: 4px;
+}
+
+.palette__chip {
+  height: 44px;
+  border: 1px solid var(--73-border-soft);
+  border-radius: var(--73-radius-sm);
+}
+
+.palette__label {
+  color: var(--73-ink);
+  font-size: var(--73-font-size-sm);
+}
+
+.palette__token {
+  color: var(--73-ink-muted);
+  font-family: var(--73-font-family-mono);
+  font-size: var(--73-font-size-xs);
 }
 
 /* 行内说明：与 .hint 同一档字号，但不另起一行 */
