@@ -8,8 +8,8 @@ import { THEMES } from '../theme'
 /**
  * 令牌完整性：每套主题必须声明同一组 `--73-*`。
  *
- * 漏一条不会报错，只会让那个槽位在某个主题下回落到 `:root` 的默认值（portal）——
- * 例如只给 `dev` 写了 `--73-danger-text`，别的主题的深字就会变成门户的深红。
+ * 漏一条不会报错，只会让那个槽位在某个主题下回落到 `:root` 的默认值（workbench）——
+ * 例如只给 `workbench-dark` 写了 `--73-danger-text`，亮色的深红就会漏进暗色主题。
  * 这类问题肉眼很难发现（要逐页切主题比对），所以用静态解析把「每套主题都齐全」钉死。
  *
  * 第 2 节那批派生令牌（表格底色、info / neutral 三件套、tooltip 等）声明在
@@ -87,19 +87,18 @@ describe('主题令牌', () => {
     }
   })
 
-  it('各主题覆盖 portal 的全部令牌，且不出现未登记的令牌', () => {
-    const base = tokensOf(blockOf('portal'))
+  it('各主题覆盖 workbench 的全部令牌，且不出现未登记的令牌', () => {
+    const base = tokensOf(blockOf('workbench'))
     expect(base.size).toBeGreaterThan(0)
     /**
-     * 已知令牌 = 共享尺寸/字号（`:root`）+ 派生公式 + portal 的完整色板。
-     * 主题块可以**覆盖**其中任何一个（例如 workbench 两套主题把圆角收敛到 16px、
-     * 把正文行高收到 1.4、给深色单独覆盖 tooltip），但不允许凭空出现一个
-     * 谁都没定义过的名字——那多半是拼写错误。
+     * 已知令牌 = 共享尺寸/字号（`:root`）+ 派生公式 + workbench 的完整色板。
+     * 主题块可以**覆盖**其中任何一个（例如暗色主题单独覆盖 tooltip），但不允许
+     * 凭空出现一个谁都没定义过的名字——那多半是拼写错误。
      */
     const known = new Set([...rootTokens(), ...tokensOf(derivedBlock), ...base])
 
     for (const theme of THEMES) {
-      if (theme === 'portal') {
+      if (theme === 'workbench') {
         continue
       }
       const tokens = tokensOf(blockOf(theme))

@@ -14,7 +14,6 @@
     },
     "./styles.css": "./src/styles/index.css",
     "./tokens.css": "./src/styles/tokens.css",
-    "./alias.css": "./src/styles/alias.css",
     "./workbench.css": "./src/styles/workbench.css",
     "./package.json": "./package.json"
   },

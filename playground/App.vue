@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /**
- * playground：把每个组件、每档语义色、五套主题都摆出来，用来肉眼比对。
+ * playground：把每个组件、每档语义色、亮/暗两套主题都摆出来，用来肉眼比对。
  *
  * 它不是文档站，刻意不做导航与折叠——目的是「一屏看完、切主题时盯着看变化」。
  * 区块按**族**排（基础 / 表单 / 浮层 / 数据 / 反馈），与 `doc/架构.md` 的清单一致，
@@ -70,16 +70,11 @@ import {
 /* ============ 主题 ============ */
 
 const THEMES: Array<{ value: ThemeName; label: string }> = [
-  { value: 'portal', label: 'portal（门户，默认）' },
-  { value: 'dev', label: 'dev（开发者）' },
-  { value: 'admin', label: 'admin（管理后台）' },
-  { value: 'support', label: 'support（客服端）' },
-  { value: 'finance', label: 'finance（财务端）' },
-  { value: 'workbench', label: 'workbench（工作台亮色）' },
-  { value: 'workbench-dark', label: 'workbench（工作台暗色）' },
+  { value: 'workbench', label: 'workbench（工作台亮色，默认）' },
+  { value: 'workbench-dark', label: 'workbench-dark（工作台暗色）' },
 ]
 
-const theme = ref<ThemeName>('portal')
+const theme = ref<ThemeName>('workbench')
 
 function switchTheme(next: ThemeName): void {
   theme.value = next
@@ -330,11 +325,10 @@ const alertClosed = ref(false)
     <header class="page__head">
       <h1>ui_73info playground</h1>
       <p class="page__lead">
-        五套主题对应四个前端的既有色板：portal / dev 来自 user_client，admin 是管理后台的
-        Element Plus 蓝，support 是客服端的青绿，finance 是财务端的墨绿。另有一对
-        workbench / workbench-dark：从 Stitch 首页稿提炼的新视觉体系，亮暗同版式、只换令牌。
-        切主题看同一组组件的颜色变化——重点看<strong>成功</strong>与<strong>警示</strong>：
-        portal 下是绿与琥珀，dev 下是青与金。表单类控件在任何主题下都能 Tab 到达、回车提交。
+        两套主题：workbench（亮色，默认）与 workbench-dark（暗色），来自 Stitch 首页稿提炼的
+        新视觉体系，亮暗同版式、只换令牌。切主题看同一组组件的颜色变化：亮色下画布浅灰、
+        卡片纯白；暗色下画布深蓝黑、卡片再亮一档，绿/琥珀/红换成深底亮字。
+        表单类控件在两套主题下都能 Tab 到达、回车提交。
       </p>
       <div class="theme-switch">
         <TButton
@@ -910,7 +904,7 @@ const alertClosed = ref(false)
       </TLoading>
       <p class="hint">
         没在加载时它不带 <code>position: relative</code>（与指令的临时行为一致）；
-        遮罩底色与转圈都取令牌，切到 dev 主题会跟着变。
+        遮罩底色与转圈都取令牌，切到暗色主题会跟着变。
       </p>
     </TCard>
   </main>

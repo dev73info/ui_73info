@@ -2,8 +2,8 @@
 /**
  * TPagination
  *
- * 接替 `<el-pagination>`（user_client 里 21 处）。规格来自 `.dev-pager` 与 `.wb-pager`
- * 两处完全相同的改写（`dev-base.css` / `portal-workbench.css`）：
+ * 接替 `<el-pagination>`（user_client 里 21 处）。结构沿用 user_client 旧分页器
+ * （`.dev-pager` / `.wb-pager`）的排布，颜色与尺寸改由 `--73-*` 令牌驱动：
  *
  * ```css
  * .dev-pager { display: flex; align-items: center; justify-content: space-between;

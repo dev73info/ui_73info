@@ -1,7 +1,7 @@
 # ui_73info
 
-73Info 自研 UI 组件库：**令牌驱动的多主题组件，零第三方 UI 依赖**。为替换
-`user_client` 里的 Element Plus 而建，架构上预留其他三个前端。
+73Info 自研 UI 组件库：**令牌驱动的亮/暗双主题组件，零第三方 UI 依赖**。为替换
+`user_client` 里的 Element Plus 而建，目前只服务 `user_client`。
 
 - 一套主题 = 一组 `--73-*` 令牌的取值，包在 `[data-73-theme='…']` 下。
   **切主题就是在 `<html>` 上换一个属性，纯 CSS，不重渲染、不重新注入样式表。**
@@ -16,7 +16,7 @@ src/
   styles/
     tokens.css        令牌层，唯一的色值来源
     reset.css         样式底座，只作用于 .t73 类名空间
-    alias.css         迁移兼容层（旧变量名 → --73-*），按需引入
+    workbench.css     页面底座（1280 容器 / 24px 网格 / 柔光），按需引入
     index.css         样式入口（只含 tokens + reset），对外是 ui_73info/styles.css
   primitives/         行为原语：定位引擎、浮层开合、列表导航、焦点陷阱、关闭行为、滚动锁定、稳定 id
   components/         组件，每个一个目录
@@ -42,18 +42,12 @@ import 'ui_73info/styles.css'
 import { applyTheme, TMessage } from 'ui_73info'
 import './styles/user.css'
 
-applyTheme('dev')            // 或 'portal'（默认）/ 'admin' / 'support' / 'finance'
+applyTheme('workbench')      // 或 'workbench-dark'
 TMessage.success('已保存')    // 命令式提示，不占模板
 ```
 
 > 子路径**必须带 `.css` 后缀**。宿主的 `vite/client` 类型里只有
 > `declare module '*.css'`，它按后缀匹配；少写后缀 Vite 能跑，但 `vue-tsc` 会报找不到模块。
-
-迁移期还需要旧变量名的桥接（前置条件见该文件顶部）：
-
-```ts
-import 'ui_73info/alias.css'
-```
 
 ## 命令
 
@@ -67,7 +61,7 @@ import 'ui_73info/alias.css'
 
 已实现：
 
-- **令牌层**：`portal` / `dev` / `admin` / `support` / `finance` 五套主题（覆盖四个前端的既有色板），加上与主题无关的尺寸、圆角、字号、层级档位。
+- **令牌层**：`workbench`（亮色，默认）/ `workbench-dark`（暗色）两套主题，加上与主题无关的尺寸、圆角、字号、层级档位。
 - **行为原语**：`useFloating`（定位引擎）、`useOverlay`（开合）、`useListbox`（列表键盘导航）、
   `useFocusTrap`、`useDismissable`、`useBodyScrollLock`、`useId`。
 - **组件（23 个目录 / 32 个模板组件）**：
@@ -90,12 +84,10 @@ import 'ui_73info/alias.css'
 > 会让打开面板与每次输入都卡住。截断只对 `filterable` 生效，被截掉的项给出「继续输入」提示；
 > 不可过滤的下拉仍全量渲染，`maxVisibleOptions=0` 可关掉截断。
 
-**已接入 `user_client`**（2026-09-30）：link 依赖与 Vite 分块、样式引入顺序、
-按路由切主题（门户 / 开发者）都已完成并实测。迁移按耦合度分批推进：样板页 `BadgeCenterView`
-与**第一批 15 个页面**（`<el-*>` 只有 button / icon / tag 的那些）已迁完，
-`user_client` 里还剩 37 个文件带 `<el-*>`、约 950 处标签。
+**已接入 `user_client` 并完成全站迁移**（2026-10-01）：link 依赖与 Vite 分块、样式引入
+顺序、按路由切主题都已完成并实测；`element-plus` 已从宿主依赖与运行时代码中移除。
+2026-11-03 起本库收敛为 workbench 亮 / 暗两套主题，不再保留门户、开发者、管理后台、
+客服端、财务端的旧色板。
 
-未实现：`user_client` 其余页面尚未迁移（逐页推进，顺序见
-[doc/开发指南.md](doc/开发指南.md) 第六节）；自动化视觉测试还没有；
-`alias.css` 这个旧变量名桥接层**刻意还没引**（理由见
-[doc/架构.md](doc/架构.md) 第七节）；其余差距清单见同文件第八节。
+未实现：自动化视觉测试还没有；其余差距清单见
+[doc/架构.md](doc/架构.md) 第八节。
