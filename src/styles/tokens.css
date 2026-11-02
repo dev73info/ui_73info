@@ -6,11 +6,12 @@
    一律 `var(--73-*)`。这一条约束就是这一层存在的理由——user_client 里现有 3666 处
    颜色字面量、只有 925 处令牌引用，正是因为缺了这一层。
 
-   ## 五套主题，一套词汇
+   ## 七套主题，一套词汇
 
    一套主题 = 一组同名 `--73-*` 令牌的取值。**同名令牌在不同主题里取不同的值**，
-   组件只认 `--73-*`，不关心自己当前在哪一套主题下。五套主题对应工作区四个前端的
-   既有色板（前两套同属 user_client），每一套都逐项照搬各自的源文件，没有重新设计：
+   组件只认 `--73-*`，不关心自己当前在哪一套主题下。七套主题里有五套对应工作区
+   四个前端的既有色板（前两套同属 user_client），每一套都逐项照搬各自的源文件，
+   没有重新设计：
 
    | 主题 | 服务对象 | 主色 |
    | --- | --- | --- |
@@ -19,10 +20,19 @@
    | `admin` | admin_client 管理后台（Element Plus 默认色板） | `#409eff` |
    | `support` | support_client 客服端（Naive UI，低饱和青绿） | `#2ba88f` |
    | `finance` | finance_client 财务端（墨绿 + 绿调中性色） | `#087f70` |
+   | `workbench` | 新视觉体系亮色（Stitch「Precision Engineering Workbench」首页稿） | `#2563eb` |
+   | `workbench-dark` | 新视觉体系暗色（同稿暗色版） | `#3b82f6`（按钮填充 `#2563eb`） |
 
-   前两套来自 `user_client/doc/设计规范.md` 第一节；后三套依次来自
+   前五套来自 `user_client/doc/设计规范.md` 第一节；后三套依次来自
    `admin_client/doc/设计规范.md`、`support_client/doc/设计规范.md`、
    `finance_client/doc/设计规范.md` 的配色一节，取值见本文件第 5–7 节。
+
+   `workbench` / `workbench-dark` 的来源与上面五套不同：它们不是照搬某个前端现有实现，
+   而是从 Stitch 生成的「73info.cn 门户首页」亮色与暗色两屏 HTML（2026-11-03，
+   项目 `dev73ifno UI Design`）里提取的同一套设计语言。两套共用一套版式与字号，
+   只替换颜色与阴影：浅色画布 `#f8fafc`、暗色画布 `#0b1120`，控件 36px / 8px 圆角，
+   卡片 12–16px 圆角，正文 13px / 行高 1.4，字体 Geist + JetBrains Mono。
+   逐项取值见本文件第 8–9 节。
 
    **刻意没有「工作台外壳」主题。** 门户工作台外壳
    （`portal-workbench.css` 的 `--wb-*`）看着像一套独立色板，实际不是：
@@ -216,9 +226,15 @@
 
   /* 浮层提示（tooltip）：深底浅字。仓库里没有登记过这一档
      （`<el-tooltip>` 用量为 0），按「正文墨色的 92%」从已有基色算，
-     每套主题各自得到符合自身墨色的一支深底。 */
+     每套主题各自得到符合自身墨色的一支深底。
+     深色主题不能用这条推导（浅墨会得到浅底浅字），在 `workbench-dark` 里显式覆盖。 */
   --73-tooltip-bg: color-mix(in srgb, var(--73-ink) 92%, transparent);
   --73-tooltip-ink: var(--73-ink-inverse);
+
+  /* workbench 页面底座的纹理与柔光：默认取通用描边/强调色推导，
+     workbench 两套主题在第 8–9 节给出与 Stitch 稿一致的取值。 */
+  --73-grid-line: var(--73-border-soft);
+  --73-hero-glow: var(--73-accent-soft);
 }
 
 /* ============================================================================
@@ -620,4 +636,200 @@
 
   /* --- 字体：finance_client 的 `body` 字体栈 --- */
   --73-font-family: 'Space Grotesk', 'Noto Sans SC', 'PingFang SC', sans-serif;
+}
+
+/* ============================================================================
+   8. workbench 亮暗共用的版式覆盖
+   ----------------------------------------------------------------------------
+   两套 workbench 主题只差颜色，圆角与排版完全相同，所以在这里一次声明。
+   这些令牌平时在 `:root`（第 1 节），这里按主题成对覆盖——已有五套主题不受影响。
+   用 `:is()` 而不是分成两个块，是为了只写一份；特异性与单写属性选择器相同。
+   ============================================================================ */
+:is([data-73-theme='workbench'], [data-73-theme='workbench-dark']) {
+  /* --- 圆角：8 / 12 / 16 三档 + 胶囊 --- */
+  --73-radius-card: 16px;
+  --73-radius-inner: 12px;
+  --73-radius-control: 8px;
+  --73-radius-sm: 8px;
+  --73-radius-dialog: 16px;
+  --73-radius-check: 4px;
+
+  /* --- 字号与字重：卡片标题 16px，按钮/标题 600，正文行高 1.4 --- */
+  --73-font-size-title: 16px;
+  --73-font-weight-bold: 600;
+  --73-line-height: 1.4;
+  --73-font-family-mono: 'JetBrains Mono', 'SFMono-Regular', Consolas, monospace;
+}
+
+/* ============================================================================
+   9. 主题：workbench（新视觉体系 · 亮色）
+   ----------------------------------------------------------------------------
+   来源：Stitch 项目 `dev73ifno UI Design` 的「73info.cn 门户首页（精密工程工作台
+   轻色版）」HTML（2026-11-03），逐项取自该稿的 tailwind.config 与页面内联样式。
+   与上面五套「照搬既有实现」不同，这一套是**新的设计语言**：
+
+   - 画布 `#f8fafc`、表面纯白、1px `#e2e8f0` 描边、四级微阴影；
+   - 主色 `#2563eb`，主按钮平色（稿件的 primary button 没有渐变）；
+   - 正文 13px / 行高 1.4，卡片标题 16px，Geist + JetBrains Mono
+     （版式覆盖在第 8 节的共享块里）。
+
+   与 `workbench-dark` 共用同一套版式，只替换颜色与阴影。
+   ============================================================================ */
+[data-73-theme='workbench'] {
+  /* --- 背景与表面 --- */
+  --73-bg: #f8fafc;
+  --73-bg-soft: #f1f5f9;
+  --73-surface: #ffffff;
+  --73-surface-strong: #ffffff;
+  --73-inset: #f1f5f9;
+
+  /* --- 描边 --- */
+  --73-border: #e2e8f0;
+  --73-border-soft: #f1f5f9;
+  --73-border-hover: #cbd5e1;
+
+  /* --- 文字 --- */
+  --73-ink: #0f172a;
+  --73-ink-soft: #475569;
+  --73-ink-muted: #64748b;
+  --73-ink-placeholder: #94a3b8;
+  --73-ink-disabled: #cbd5e1;
+  --73-ink-inverse: #ffffff;
+
+  /* --- 强调色 --- */
+  --73-accent: #2563eb;
+  --73-accent-soft: #eff6ff;
+  --73-accent-line: #dbeafe;
+  --73-accent-gradient: linear-gradient(135deg, #2563eb, #2563eb);
+  --73-accent-contrast: #ffffff;
+
+  /* --- 状态色：饱和基色 + 浅底 + 深字（稿件 Semantic Badges 一档） --- */
+  --73-success: #10b981;
+  --73-success-soft: #ecfdf5;
+  --73-success-line: #d1fae5;
+  --73-success-text: #047857;
+
+  --73-warning: #f59e0b;
+  --73-warning-soft: #fffbeb;
+  --73-warning-line: #fde68a;
+  --73-warning-text: #92400e;
+
+  --73-danger: #ef4444;
+  --73-danger-soft: #fef2f2;
+  --73-danger-line: #fecaca;
+  --73-danger-text: #b91c1c;
+
+  --73-info: #64748b;
+
+  /* --- 提示条：深底浅字（派生块同式，这里显式登记以保持主题令牌齐全） --- */
+  --73-tooltip-bg: color-mix(in srgb, var(--73-ink) 92%, transparent);
+  --73-tooltip-ink: var(--73-ink-inverse);
+
+  /* --- 滚动条：中性 slate --- */
+  --73-scrollbar-thumb: color-mix(in srgb, var(--73-ink-muted) 42%, transparent);
+  --73-scrollbar-thumb-hover: color-mix(in srgb, var(--73-ink-muted) 62%, transparent);
+
+  /* --- 阴影：稿件登记的四级微阴影 --- */
+  --73-shadow-card: 0 1px 2px 0 rgba(15, 23, 42, 0.04);
+  --73-shadow-card-hover:
+    0 2px 4px 0 rgba(15, 23, 42, 0.06), 0 1px 2px -1px rgba(15, 23, 42, 0.04);
+  --73-shadow-control:
+    0 2px 4px 0 rgba(15, 23, 42, 0.06), 0 1px 2px -1px rgba(15, 23, 42, 0.04);
+  --73-shadow-dialog:
+    0 20px 25px -5px rgba(15, 23, 42, 0.12), 0 8px 10px -6px rgba(15, 23, 42, 0.06);
+  --73-shadow-panel:
+    0 4px 12px -2px rgba(15, 23, 42, 0.08), 0 2px 6px -2px rgba(15, 23, 42, 0.04);
+  --73-dialog-veil: rgba(15, 23, 42, 0.2);
+
+  /* --- 字体 --- */
+  --73-font-family: 'Geist', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+
+  /* --- 页面底座纹理（workbench.css 消费） --- */
+  --73-grid-line: rgba(226, 232, 240, 0.45);
+  --73-hero-glow: rgba(37, 99, 235, 0.05);
+}
+
+/* ============================================================================
+   10. 主题：workbench-dark（新视觉体系 · 暗色）
+   ----------------------------------------------------------------------------
+   来源：同一首页稿的「精密工程深色工作台版」HTML。结构与 `workbench` 完全一致，
+   只替换颜色与阴影；亮暗切换就是换这一个属性值。
+
+   两处与亮色不同的取值要说明：
+   - `--73-accent` 取链接与激活态用的 `#3b82f6`，主按钮填充走
+     `--73-accent-gradient` 的 `#2563eb`——与稿件「primary-blue / primary-btn」
+     两个 token 的分工一致；
+   - 深色是三层次：画布 `#0b1120` < 卡片 `#0f172a` < 顶栏/内嵌条 `#111827` <
+     悬浮态 `#1e293b`，对应 `--73-bg` / `--73-surface` / `--73-bg-soft` / `--73-inset`。
+   ============================================================================ */
+[data-73-theme='workbench-dark'] {
+  /* --- 背景与表面 --- */
+  --73-bg: #0b1120;
+  --73-bg-soft: #111827;
+  --73-surface: #0f172a;
+  --73-surface-strong: #0f172a;
+  --73-inset: #1e293b;
+
+  /* --- 描边 --- */
+  --73-border: #1f2937;
+  --73-border-soft: #1f2937;
+  --73-border-hover: #334155;
+
+  /* --- 文字 --- */
+  --73-ink: #e2e8f0;
+  --73-ink-soft: #94a3b8;
+  --73-ink-muted: #64748b;
+  --73-ink-placeholder: #64748b;
+  --73-ink-disabled: #475569;
+  --73-ink-inverse: #ffffff;
+
+  /* --- 强调色 --- */
+  --73-accent: #3b82f6;
+  --73-accent-soft: #172554;
+  --73-accent-line: #1e3a8a;
+  --73-accent-gradient: linear-gradient(135deg, #2563eb, #2563eb);
+  --73-accent-contrast: #ffffff;
+
+  /* --- 状态色：深底 + 亮字（稿件暗色语义胶囊一档） --- */
+  --73-success: #34d399;
+  --73-success-soft: #064e3b;
+  --73-success-line: #065f46;
+  --73-success-text: #6ee7b7;
+
+  --73-warning: #fbbf24;
+  --73-warning-soft: #451a03;
+  --73-warning-line: #78350f;
+  --73-warning-text: #fcd34d;
+
+  --73-danger: #f87171;
+  --73-danger-soft: #450a0a;
+  --73-danger-line: #7f1d1d;
+  --73-danger-text: #fca5a5;
+
+  --73-info: #94a3b8;
+
+  /* --- 提示条：不能用「墨色 92%」推导（浅墨会得到浅底浅字），显式给深底 --- */
+  --73-tooltip-bg: #1e293b;
+  --73-tooltip-ink: #e2e8f0;
+
+  /* --- 滚动条 --- */
+  --73-scrollbar-thumb: color-mix(in srgb, var(--73-ink-muted) 52%, transparent);
+  --73-scrollbar-thumb-hover: color-mix(in srgb, var(--73-ink-muted) 72%, transparent);
+
+  /* --- 阴影：深色下只做层次分隔，几乎不可见 --- */
+  --73-shadow-card: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
+  --73-shadow-card-hover: 0 2px 4px 0 rgba(0, 0, 0, 0.5);
+  --73-shadow-control: 0 4px 12px -2px rgba(0, 0, 0, 0.35);
+  --73-shadow-dialog:
+    0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
+  --73-shadow-panel:
+    0 4px 12px -2px rgba(0, 0, 0, 0.45), 0 2px 6px -2px rgba(0, 0, 0, 0.35);
+  --73-dialog-veil: rgba(2, 6, 23, 0.6);
+
+  /* --- 字体 --- */
+  --73-font-family: 'Geist', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+
+  /* --- 页面底座纹理 --- */
+  --73-grid-line: rgba(31, 41, 55, 0.45);
+  --73-hero-glow: rgba(37, 99, 235, 0.1);
 }

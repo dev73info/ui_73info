@@ -55,6 +55,31 @@ function tokensOf(block: string): Set<string> {
   return new Set(block.match(/--73-[a-z0-9-]+(?=\s*:)/g) ?? [])
 }
 
+/** 第一段 `:root { … }`（第 1 节与主题无关的尺寸 / 字号令牌）。 */
+function rootTokens(): Set<string> {
+  const match = /:root\s*\{/.exec(css)
+  if (!match) {
+    return new Set()
+  }
+  const start = match.index + match[0].length
+  let depth = 1
+  for (let index = start; index < css.length; index += 1) {
+    const char = css[index]
+    if (char === '{') {
+      depth += 1
+    } else if (char === '}') {
+      depth -= 1
+      if (depth === 0) {
+        return tokensOf(css.slice(start, index))
+      }
+    }
+  }
+  return new Set()
+}
+
+/** 第 2 节派生块（公式对所有主题生效）。 */
+const derivedBlock = /:root,\s*\[data-73-theme\]\s*\{[\s\S]*?\}/.exec(css)?.[0] ?? ''
+
 describe('主题令牌', () => {
   it('主题运行时里列出的每一套主题都有对应的 CSS 块', () => {
     for (const theme of THEMES) {
@@ -62,9 +87,16 @@ describe('主题令牌', () => {
     }
   })
 
-  it('各主题声明的令牌与 portal 完全一致（不缺、不多、不拼错）', () => {
+  it('各主题覆盖 portal 的全部令牌，且不出现未登记的令牌', () => {
     const base = tokensOf(blockOf('portal'))
     expect(base.size).toBeGreaterThan(0)
+    /**
+     * 已知令牌 = 共享尺寸/字号（`:root`）+ 派生公式 + portal 的完整色板。
+     * 主题块可以**覆盖**其中任何一个（例如 workbench 两套主题把圆角收敛到 16px、
+     * 把正文行高收到 1.4、给深色单独覆盖 tooltip），但不允许凭空出现一个
+     * 谁都没定义过的名字——那多半是拼写错误。
+     */
+    const known = new Set([...rootTokens(), ...tokensOf(derivedBlock), ...base])
 
     for (const theme of THEMES) {
       if (theme === 'portal') {
@@ -72,23 +104,24 @@ describe('主题令牌', () => {
       }
       const tokens = tokensOf(blockOf(theme))
       const missing = [...base].filter((token) => !tokens.has(token))
-      const extra = [...tokens].filter((token) => !base.has(token))
+      const extra = [...tokens].filter((token) => !known.has(token))
       expect(missing, `主题 ${theme} 缺少令牌`).toEqual([])
-      expect(extra, `主题 ${theme} 多出 portal 没有的令牌`).toEqual([])
+      expect(extra, `主题 ${theme} 出现未登记的令牌`).toEqual([])
     }
   })
 
   it('派生令牌块还在（表格底色 / info / neutral / tooltip 靠它）', () => {
-    const derived = /:root,\s*\[data-73-theme\]\s*\{[\s\S]*?\}/.exec(css)?.[0] ?? ''
-    expect(tokensOf(derived).size).toBeGreaterThan(0)
+    expect(tokensOf(derivedBlock).size).toBeGreaterThan(0)
     for (const token of [
       '--73-table-header-bg',
       '--73-info-soft',
       '--73-neutral-line',
       '--73-tooltip-bg',
       '--73-track',
+      '--73-grid-line',
+      '--73-hero-glow',
     ]) {
-      expect(derived, `派生令牌块缺少 ${token}`).toContain(`${token}:`)
+      expect(derivedBlock, `派生令牌块缺少 ${token}`).toContain(`${token}:`)
     }
   })
 })

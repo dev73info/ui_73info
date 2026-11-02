@@ -18,7 +18,7 @@ describe('主题运行时', () => {
     expect(getTheme()).toBe(DEFAULT_THEME)
   })
 
-  it('五套主题都能应用并读回', () => {
+  it('七套主题都能应用并读回', () => {
     for (const theme of THEMES) {
       applyTheme(theme)
       expect(document.documentElement.getAttribute(THEME_ATTRIBUTE)).toBe(theme)
@@ -26,8 +26,16 @@ describe('主题运行时', () => {
     }
   })
 
-  it('主题清单覆盖四个前端：portal / dev / admin / support / finance', () => {
-    expect([...THEMES]).toEqual(['portal', 'dev', 'admin', 'support', 'finance'])
+  it('主题清单覆盖五个既有色板与工作台亮暗两套', () => {
+    expect([...THEMES]).toEqual([
+      'portal',
+      'dev',
+      'admin',
+      'support',
+      'finance',
+      'workbench',
+      'workbench-dark',
+    ])
     expect(THEMES.every((theme) => isThemeName(theme))).toBe(true)
   })
 

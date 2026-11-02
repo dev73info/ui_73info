@@ -5,10 +5,12 @@
  * 所以「切主题」就是在根元素上换一个属性值——纯 CSS，没有 JS 重算，也没有
  * 「把样式表重新注入一遍」那种做法。这里只提供这个动作的封装与当前值的一份响应式镜像。
  *
- * ## 五套主题
+ * ## 七套主题
  *
  * 一套主题 = `tokens.css` 里一组 `--73-*` 的取值，包在 `[data-73-theme='…']` 选择器下。
- * 五套主题对应工作区四个前端各自的既有色板（前两套同属 user_client）：
+ * 五套主题对应工作区四个前端各自的既有色板（前两套同属 user_client）；
+ * 另有一对 `workbench` / `workbench-dark`，是从 Stitch 首页稿提炼的新视觉体系，
+ * 亮暗同版式、只换令牌：
  *
  * | 主题 | 服务对象 | 主色 |
  * | --- | --- | --- |
@@ -17,6 +19,8 @@
  * | `admin` | admin_client 管理后台 | `#409eff` |
  * | `support` | support_client 客服端 | `#2ba88f` |
  * | `finance` | finance_client 财务端 | `#087f70` |
+ * | `workbench` | 新视觉体系亮色 | `#2563eb` |
+ * | `workbench-dark` | 新视觉体系暗色 | `#3b82f6` |
  *
  * 所有主题共用同一套令牌名，组件只认 `--73-*`，不关心自己当前在哪套主题下。
  *
@@ -38,8 +42,16 @@ import { readonly, ref, type Ref } from 'vue'
 /** 承载主题的 HTML 属性名 */
 export const THEME_ATTRIBUTE = 'data-73-theme'
 
-/** 可选主题名。五套，对应四个前端各自的既有色板，理由见文件顶部。 */
-export const THEMES = ['portal', 'dev', 'admin', 'support', 'finance'] as const
+/** 可选主题名。七套：五个既有色板（四个前端）+ workbench 亮暗两套，理由见文件顶部。 */
+export const THEMES = [
+  'portal',
+  'dev',
+  'admin',
+  'support',
+  'finance',
+  'workbench',
+  'workbench-dark',
+] as const
 
 export type ThemeName = (typeof THEMES)[number]
 

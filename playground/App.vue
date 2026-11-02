@@ -75,6 +75,8 @@ const THEMES: Array<{ value: ThemeName; label: string }> = [
   { value: 'admin', label: 'admin（管理后台）' },
   { value: 'support', label: 'support（客服端）' },
   { value: 'finance', label: 'finance（财务端）' },
+  { value: 'workbench', label: 'workbench（工作台亮色）' },
+  { value: 'workbench-dark', label: 'workbench（工作台暗色）' },
 ]
 
 const theme = ref<ThemeName>('portal')
@@ -329,9 +331,10 @@ const alertClosed = ref(false)
       <h1>ui_73info playground</h1>
       <p class="page__lead">
         五套主题对应四个前端的既有色板：portal / dev 来自 user_client，admin 是管理后台的
-        Element Plus 蓝，support 是客服端的青绿，finance 是财务端的墨绿。切主题看同一组组件的
-        颜色变化——重点看<strong>成功</strong>与<strong>警示</strong>：portal 下是绿与琥珀，
-        dev 下是青与金。表单类控件在任何主题下都能 Tab 到达、回车提交。
+        Element Plus 蓝，support 是客服端的青绿，finance 是财务端的墨绿。另有一对
+        workbench / workbench-dark：从 Stitch 首页稿提炼的新视觉体系，亮暗同版式、只换令牌。
+        切主题看同一组组件的颜色变化——重点看<strong>成功</strong>与<strong>警示</strong>：
+        portal 下是绿与琥珀，dev 下是青与金。表单类控件在任何主题下都能 Tab 到达、回车提交。
       </p>
       <div class="theme-switch">
         <TButton

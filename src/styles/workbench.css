@@ -1,0 +1,72 @@
+/* ============================================================================
+   ui_73info · workbench 页面底座（可选）
+   ============================================================================
+
+   与 `workbench` / `workbench-dark` 两套主题配套的**页面级**样式。
+   令牌层负责颜色与尺寸，这里只放组件之外、每个页面都要重复写的三件事：
+
+   1. `.t73-wb`         页面画布：底色、墨色、字体与行高；
+   2. `.t73-wb__shell`  内容容器：最大 1280px、24px 页边距、24px 纵向间距；
+   3. `.t73-wb-grid-bg` 首页主视觉的 24px 工程网格纹理；
+   4. `.t73-wb-glow`    主视觉右上角的柔光（Stitch 稿里那个 blur-3xl 圆）。
+
+   刻意不把整张首页的卡片、榜单、资源格做成类：那些是页面结构，应该由组件与页面
+   自己组织；这里只收敛「每页都要写一遍」的底座，避免每页各写一套 1280px 与网格。
+
+   引入方式（与 alias.css 一样显式引入，不在 styles.css 里自动带出）：
+
+   ```ts
+   import 'ui_73info/workbench.css'
+   ```
+   ============================================================================ */
+
+.t73-wb {
+  min-height: 100vh;
+  background: var(--73-bg);
+  color: var(--73-ink);
+  font-family: var(--73-font-family);
+  font-size: var(--73-font-size-body);
+  line-height: var(--73-line-height);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.t73-wb__shell {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: min(1280px, 100%);
+  margin: 0 auto;
+  padding: 24px;
+}
+
+/* 24px 工程网格：颜色取自主题的 `--73-grid-line`（亮色 #e2e8f0/45%，
+   暗色 #1f2937/45%），这里不出现裸色值。 */
+.t73-wb-grid-bg {
+  background-image:
+    linear-gradient(to right, var(--73-grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--73-grid-line) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* 主视觉柔光：用伪元素做，不额外占 DOM；`isolation` + 负层级把它压到内容之下，
+   又不会跑到页面背景之后。 */
+.t73-wb-glow {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.t73-wb-glow::after {
+  content: '';
+  position: absolute;
+  top: -80px;
+  right: -80px;
+  width: 384px;
+  height: 384px;
+  border-radius: var(--73-radius-pill);
+  background: var(--73-hero-glow);
+  filter: blur(64px);
+  pointer-events: none;
+  z-index: -1;
+}
