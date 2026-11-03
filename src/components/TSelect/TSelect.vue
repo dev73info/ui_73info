@@ -519,7 +519,8 @@ defineExpose({
   display: flex;
   align-items: center;
   gap: 6px;
-  width: 100%;
+  width: auto;
+  max-width: 100%;
   height: var(--73-control-height);
   min-height: var(--73-control-height);
   padding: 0 12px;

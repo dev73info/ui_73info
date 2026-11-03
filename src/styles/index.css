@@ -9,15 +9,8 @@
    ```
 
    只包含两份：
-   - `tokens.css` — 唯一的色值来源
+   - `tokens.css` — 唯一的色值来源（workbench 亮 / 暗两套主题）
    - `reset.css`  — 只作用于 `.t73` 类名空间的轻量底座
-
-   **`alias.css`（旧变量名兼容层）刻意不在这里。** 它是迁移期的临时桥，
-   不挂主题属性就引入会让开发者页面整片变色，必须由使用方显式按需引入：
-
-   ```ts
-   import 'ui_73info/alias.css'
-   ```
 
    **子路径必须带 `.css` 后缀**（`ui_73info/styles.css` 而不是 `ui_73info/styles`）：
    宿主的 `env.d.ts` 里只有 `/// <reference types="vite/client" />` 提供的

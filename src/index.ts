@@ -15,7 +15,7 @@
  * import 'ui_73info/styles.css'   // ① 令牌 + 样式底座，要在页面样式之前
  * import { TButton, TMessage, applyTheme } from 'ui_73info'
  *
- * applyTheme('dev')              // ② 在 <html> 上切主题
+ * applyTheme('workbench')        // ② 在 <html> 上切主题（或 'workbench-dark'）
  * TMessage.success('已保存')      // ③ 命令式提示，不占模板
  * ```
  *
@@ -25,9 +25,6 @@
  *
  * 子路径**必须带 `.css` 后缀**：宿主的 `vite/client` 类型里只有
  * `declare module '*.css'`，它按后缀匹配，少写后缀 `vue-tsc` 会报找不到模块。
- *
- * 迁移期还需要 `import 'ui_73info/alias.css'`（旧变量名 → `--73-*` 的兼容层），
- * 用法与前置条件见该文件顶部。
  */
 
 import type { App, Component } from 'vue'

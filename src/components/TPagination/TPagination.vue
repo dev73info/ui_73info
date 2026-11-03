@@ -2,8 +2,8 @@
 /**
  * TPagination
  *
- * 接替 `<el-pagination>`（user_client 里 21 处）。规格来自 `.dev-pager` 与 `.wb-pager`
- * 两处完全相同的改写（`dev-base.css` / `portal-workbench.css`）：
+ * 接替 `<el-pagination>`（user_client 里 21 处）。结构沿用 user_client 旧分页器
+ * （`.dev-pager` / `.wb-pager`）的排布，颜色与尺寸改由 `--73-*` 令牌驱动：
  *
  * ```css
  * .dev-pager { display: flex; align-items: center; justify-content: space-between;
@@ -339,7 +339,8 @@ const classes = computed(() => [
 }
 
 .t73-pagination__button:hover:not(:disabled) {
-  color: var(--73-accent);
+  background: var(--73-inset);
+  color: var(--73-ink);
 }
 
 .t73-pagination__button:focus-visible {
@@ -360,6 +361,19 @@ const classes = computed(() => [
 .t73-pagination--background .t73-pagination__page--active {
   color: var(--73-accent);
   font-weight: var(--73-font-weight-bold);
+}
+
+/* 未选中的页码只是可点的数字：不铺底色、不描边，避免整排页码看起来像一排按钮。 */
+.t73-pagination__page:not(.t73-pagination__page--active) {
+  border: none;
+  background: transparent;
+}
+
+/* 选中页悬停时保留选中语义，不要被通用 hover 的灰底盖掉。 */
+.t73-pagination__page--active:hover:not(:disabled),
+.t73-pagination--background .t73-pagination__page--active:hover:not(:disabled) {
+  background: var(--73-accent-soft);
+  color: var(--73-accent);
 }
 
 .t73-pagination__gap {
