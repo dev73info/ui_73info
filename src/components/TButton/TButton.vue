@@ -9,9 +9,8 @@
  *
  * 两处刻意的取舍：
  *
- * 1. **主按钮的底色来自 `--73-accent-gradient`。** 门户侧主按钮是渐变
- *    （`--primary-gradient`），开发者侧是平色；令牌层已经把这个差异吸收了
- *    （dev 主题下该令牌退化成纯色），组件不必分支。
+ * 1. **主按钮的底色来自 `--73-accent-gradient`。** 工作台两套主题都把它收敛成
+ *    主色平色，组件不必为暗色分支。
  * 2. **禁用态只降透明度，不改颜色。** 与 `.dev-btn:disabled { opacity: 0.56 }` 一致；
  *    另做一套灰色会多出四个只用于禁用的色值。
  */
@@ -256,6 +255,32 @@ function onClick(event: MouseEvent): void {
 
 .t73-button--text:not(.t73-button--disabled):hover {
   background: var(--t73-btn-soft);
+}
+
+/* --- icon-only：裸图标 ---
+   图标按钮不放「一个装着图标的小方块」：没有边框、没有底色，只有图标本身的颜色。
+   这一组写在所有变体之后、特异性也更高，所以对 icon-only 一律生效——调用方只需要
+   用 tone 选颜色，variant 在 icon-only 下不再区分外观。
+   悬浮 / 键盘聚焦给一层浅底做反馈；焦点环保留——没有边框的按钮更容易丢焦点，
+   键盘用户靠它。 */
+.t73-button.t73-button--icon-only {
+  background: transparent;
+  background-image: none;
+  border-color: transparent;
+  box-shadow: none;
+  color: var(--t73-btn-text);
+}
+
+.t73-button.t73-button--icon-only:not(.t73-button--disabled):hover {
+  background: var(--t73-btn-soft);
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.t73-button.t73-button--icon-only:focus-visible {
+  background: var(--t73-btn-soft);
+  border-color: transparent;
+  box-shadow: var(--73-focus-ring);
 }
 
 /* --- 前缀/后缀与转圈 --- */

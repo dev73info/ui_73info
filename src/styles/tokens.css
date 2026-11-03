@@ -2,142 +2,99 @@
    ui_73info · 令牌层（本库唯一的色值来源）
    ============================================================================
 
-   这是三层架构里最下面的一层：令牌 → 行为原语 → 组件。**组件层禁止出现裸色值**，
-   一律 `var(--73-*)`。这一条约束就是这一层存在的理由——user_client 里现有 3666 处
-   颜色字面量、只有 925 处令牌引用，正是因为缺了这一层。
+   三层结构：令牌 → 行为原语 → 组件。**组件层禁止出现裸色值**，一律 `var(--73-*)`。
 
    ## 两套主题，一套词汇
 
-   user_client 一个 SPA 里并存两套视觉体系（见 user_client/doc/设计规范.md 第一节），
-   对应这里的两个主题。**同名令牌在两套主题里取不同的值**，组件只认 `--73-*`，
-   不关心自己当前在哪一套主题下。
+   一套主题 = 一组同名 `--73-*` 令牌的取值。**同名令牌在不同主题里取不同的值**，
+   组件只认 `--73-*`，不关心自己当前在哪一套主题下。
 
-   | 主题 | 什么时候用 | 主色 |
+   | 主题 | 说明 | 主色 |
    | --- | --- | --- |
-   | `portal`（默认） | 首页、需求大厅、资源、社区、个人中心、工作台外壳 | `#1f4ad1` |
-   | `dev` | 开发者工作台、资源管理、需求详情、钱包 | `#1f4ad1` + 青 `#2aa6a4` + 金 `#b9812b` |
+   | `workbench`（默认） | 亮色：画布 `#f8fafc`、白色表面、1px `#e2e8f0` 描边 | `#2563eb` |
+   | `workbench-dark` | 暗色：画布 `#0b1120`、三层深色表面、深底语义胶囊 | `#3b82f6`（按钮填充 `#2563eb`） |
 
-   **只有两个主题。** 这里刻意没有第三个「工作台外壳」主题，因为门户工作台外壳
-   （`portal-workbench.css` 的 `--wb-*`）看着像第三套，实际不是一套完整色板：
-
-   - 它只定义 10 个令牌——4 个尺寸 + 主色三件套（accent / accent-soft / accent-line）
-     + 描边 + 弱化墨色 + 阴影。**没有背景、没有表面、没有正文墨色、没有状态色**；
-     那些沿用门户侧与 `profile.css` 的 `--profile-*`。
-   - 它的状态色**跟随当前模式**：门户模式下 `.profile-page` 把 Element 的成功/警示
-     映射到门户的绿 `#166534` 与琥珀 `#92400e`，开发者模式下 `.user-workbench--dev`
-     映射到青与金。同一张页面切一次模式就换一套状态色。
-     `MessagesView.vue` / `NotificationCenterView.vue` 直接印证了这个模型：
-     它们按模式在 `profile-page`（门户体系）与 `dev-page`（开发者体系）之间切根类。
-
-   所以工作台外壳不是什么第三个主题，而是**「当前是哪个模式就用哪套」**；它之所以
-   在两种模式下看着一样，是因为 `--wb-*` 那 10 个结构值当初被冻结成了 dev 的取值。
-   把它做成第三个可选主题会直接渲染错：门户模式的工作台显示绿/琥珀，而 `workbench`
-   会给出青/金。完整推理见 doc/架构.md 第二节。
+   取值来源：Stitch 项目 `dev73ifno UI Design` 的「73info.cn 门户首页」亮色与暗色
+   两屏 HTML（2026-11-03，设计系统 Precision Engineering Workbench）。两套共用同一套
+   版式：控件 36px / 8px 圆角，卡片 12–16px 圆角，正文 13px / 行高 1.4，
+   Geist + JetBrains Mono。
 
    ## 怎么切主题
+
    在 `<html>` 上换一个属性，纯 CSS，不需要 JS 重渲染：
 
    ```html
-   <html data-73-theme="dev">     <!-- 开发者体系 -->
-   <html data-73-theme="portal">  <!-- 门户体系（也是不写该属性时的默认值） -->
+   <html data-73-theme="workbench">       <!-- 亮色（也是不写该属性时的默认值） -->
+   <html data-73-theme="workbench-dark">  <!-- 暗色 -->
    ```
 
    `applyTheme()`（`src/theme/index.ts`）封装了这个动作；挂在子树上的 `[data-73-theme]`
    同样生效，新组件因此支持局部换主题。
-
-   ## 一个必须知道的 CSS 细节
-
-   自定义属性在**声明它的那个元素**上求值，后代继承的是已经算好的结果。user_client 现有的
-   `--el-*` 与两套 `:root` 令牌全部声明在 `:root` 上，所以：
-
-   - **要让 `alias.css`（旧变量名 → `--73-*` 的兼容层）正确工作，主题属性必须落在 `<html>` 上。**
-     把主题属性挂到某个内部 `<div>` 上，只有读 `--73-*` 的新组件会跟着变，
-     `:root` 上那些旧变量名不会。
-   - 只读 `--73-*` 的新组件不受这条限制，子树换主题就是换子树里那棵。
-
-   这条限制只影响迁移期的兼容层，不影响新组件。
    ============================================================================ */
 
 /* ============================================================================
    1. 与主题无关的令牌
    ----------------------------------------------------------------------------
    尺寸、字号、圆角、动效、层级、模糊半径。两套主题共用，所以在 `:root` 上声明一次。
-   值来自 user_client 现状，不重新设计；圆角档位与《设计规范》第四节登记的一致。
+   取值来自工作台设计稿（Stitch 首页亮/暗两屏）与既有组件的尺寸档位。
    ============================================================================ */
 :root {
   /* --- 圆角 ---
-     《设计规范》给新代码登记的档位是 12（卡片）/ 10（小控件）/ 8（内嵌块）/ 999（胶囊）。
-     这里把「卡片 24px」「内嵌块 12px」「控件 10px」按 dev-base.css / portal-workbench.css
-     已经收敛好的那三档搬过来（两侧同源，不要再各写一份 px），另补 8px 与胶囊、
-     以及弹窗一档。 */
-  --73-radius-card: 24px;
+     工作台设计的圆角信封：8px（控件与小方块）/ 12px（内嵌块、浮层）/ 16px（卡片、弹窗）/
+     999px（胶囊）。复选框 4px 是方框专用的一档。 */
+  --73-radius-card: 16px;
   --73-radius-inner: 12px;
-  --73-radius-control: 10px;
+  --73-radius-control: 8px;
   --73-radius-sm: 8px;
   --73-radius-pill: 999px;
-  /* 弹窗圆角：仓库现有弹窗实际是 22px（modal.css 的 .auth-modal/.pay-modal）、
-     18px（dev-icon-dialog-modal）、8px（dev-recharge-dialog）三个值并存，同一角色三种圆角。
-     这里取中间档 18px 收成一个值；要改成《设计规范》新代码档位里的 12px，只改这一处。 */
-  --73-radius-dialog: 18px;
+  --73-radius-dialog: 16px;
 
   /* --- 控件尺寸 ---
-     控件高度统一到 36px（--dev-control-height / --wb-control-height），
-     胶囊 28px（.wb-chip / .dev-chip），避免「同一种控件各页不同高」。 */
+     控件高度统一 36px；小尺寸与胶囊 28px。 */
   --73-control-height: 36px;
   --73-control-height-sm: 28px;
   --73-chip-height: 28px;
 
   /* --- 字号与字重 ---
-     《设计规范》第四节：正文主力 13px、次要 12px、标签角标 11px、卡片标题 14–18px。
-     不引入 10px 以下或 20px 以上的新档位。 */
+     正文 13px / 行高 1.4（工作台设计稿的密集排版），次要 12px，标签角标 11px，
+     卡片标题 16px，弹窗标题 20px。字重 600 覆盖标题与按钮。 */
   --73-font-size-body: 13px;
   --73-font-size-sm: 12px;
   --73-font-size-xs: 11px;
   --73-font-size-md: 14px;
-  --73-font-size-title: 18px;
+  --73-font-size-title: 16px;
   --73-font-size-dialog-title: 20px;
-  --73-font-weight-bold: 700;
-  --73-line-height: 1.6;
-  --73-font-family-mono: 'IBM Plex Mono', 'SFMono-Regular', Consolas, monospace;
+  --73-font-weight-bold: 600;
+  --73-line-height: 1.4;
+  --73-font-family: 'Geist', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --73-font-family-mono: 'JetBrains Mono', 'SFMono-Regular', Consolas, monospace;
 
   /* --- 动效 ---
-     取仓库里控件过渡的既有口径（.dev-btn / .dev-recharge-dialog__headerbtn 都是 160ms ease）。 */
-  --73-transition: 160ms ease;
+     工作台设计的过渡区间是 100–150ms；这里取 150ms。 */
+  --73-transition: 150ms ease;
 
   /* --- 中性投影 ---
-     开关滑块那一道 1px 投影是中性色、与主题无关（原值写死在 TSwitch 里，违反「组件层禁止裸色值」），
-     登记成令牌，两套主题共用。 */
+     开关滑块那一道 1px 投影是中性色、与主题无关，登记成令牌，各主题共用。 */
   --73-shadow-knob: 0 1px 3px rgba(15, 23, 42, 0.2);
 
   /* --- 层级 ---
-     浮层真实层级由 `useZIndex` 在打开时分配（后打开的层在上面），这两个令牌是基准与兜底：
-     分配从 2000（与 `--73-z-dropdown` 同值）起算，上限是「基准 + 同时打开的层数」，
-     所以不会越过全局提示。遮罩的历史值 3000 来自 modal.css 的
-     `.el-overlay { z-index: 3000 !important }`（那里为盖住工作台头部提升过）。 */
+     浮层真实层级由 `useZIndex` 在打开时分配（后打开的层在上面），这两个令牌是基准与兜底。 */
   --73-z-dropdown: 2000;
   --73-z-dialog: 3000;
   --73-z-toast: 3100;
 
   /* --- 毛玻璃与焦点环 ---
-     模糊 12px 取自 resource-core.css 的 --glass-blur。
-     焦点环用强调线的颜色，不再另造一个透明蓝。 */
+     焦点环按工作台设计的 2px 主色光晕，不再外扩到 3px。 */
   --73-glass-blur: 12px;
-  --73-focus-ring: 0 0 0 3px var(--73-accent-line);
+  --73-focus-ring: 0 0 0 2px color-mix(in srgb, var(--73-accent) 15%, transparent);
 
   /* --- 浮层（下拉面板、气泡、日期面板、提示）---
-     面板圆角 12px 与投影「0 18px 36px」来自 `.dev-resource-action-menu.el-popper`
-     与 `.requirement-action-menu.el-popper` 两处（两处的圆角与偏移完全一致，只有
-     投影的色相不同，那一项按主题给）。菜单内边距 6px、菜单项圆角 8px 同源。
-     菜单项高度取控件档 36px：仓库里 dev-resource 是 34px、profile 是 36px，
-     收敛成控件档，避免同一个菜单在两种体系下差 2px。 */
+     面板圆角 12px、菜单项 8px、内边距 6px、菜单项高度取控件档 36px。 */
   --73-radius-panel: 12px;
   --73-radius-menu-item: 8px;
   --73-panel-gap: 4px;
   --73-panel-padding: 6px;
   --73-panel-min-width: 112px;
-
-  /* --- 表格 ---
-     各档的**公式**两套主题相同，基色随主题走，所以取值统一放在下面第 2 节。 */
 
   /* --- 开关 --- */
   --73-switch-width: 44px;
@@ -145,37 +102,23 @@
   --73-switch-knob: 18px;
 
   /* --- 复选框与单选 ---
-     方框 16px、圆形 16px；命中区靠外层 padding 撑到 44px（触屏档），
-     方框本身不做大——16px 是这个仓库里标签与表单的既有口径。
-     方框圆角 5px 是**本库新增的一档**：已有的 8/10/12 三档都大于 16px 方框好看的范围
-     （8px 已经接近正圆），而仓库里没有登记过更小的一档，所以在这里补一个最小档，
-     不要在组件里就地写一个 px。 */
+     方框 16px、圆形 16px；命中区靠外层 padding 撑到 44px（触屏档）。
+     方框圆角 4px 是工作台设计的 checkbox 圆角。 */
   --73-check-size: 16px;
-  --73-radius-check: 5px;
+  --73-radius-check: 4px;
 }
 
 /* ============================================================================
    2. 跨主题派生档位（公式固定，基色随主题）
    ----------------------------------------------------------------------------
-   这一节的表达式两套主题**完全相同**，只是引用的基色（`--73-bg` / `--73-accent`
-   / `--73-info`）在哪个主题下取值不同，所以写一次即可。
+   这一节的表达式在两套主题下**完全相同**，只是引用的基色（`--73-bg` /
+   `--73-accent` / `--73-info`）取值不同，所以写一次即可。
 
    选择器带 `[data-73-theme]`：这样把主题属性挂在子树（而不是 `<html>`）上时，
-   这些派生值也在**挂属性的那个元素**上求值，跟着子树一起变——第 1 节那一批
-   与主题无关的令牌可以直接继承，但这一批读的是主题色，必须自己在场求值。
+   这些派生值也在**挂属性的那个元素**上求值，跟着子树一起变。
 
-   每个公式都能追到源文件，且刻意选成「在 dev 主题下正好等于源文件登记的字面量」，
-   这样搬迁时不会出现「同一张表在两种模式下深浅不一」：
-
-   | 令牌 | 公式 | dev 下算出来的值 | 源文件登记值 |
-   | --- | --- | --- | --- |
-   | `--73-table-header-bg` | 90% `--73-bg` + 10% `--73-surface-strong` | `#f2f5fb` | `.dev-table` 的 `--el-table-header-bg-color` |
-   | `--73-table-stripe` | 62% `--73-bg` + 38% `--73-surface-strong` | `#f6f8fd` | `--el-fill-color-lighter` |
-   | `--73-table-row-hover` | 5% `--73-accent` + 95% `--73-surface-strong` | `#f4f6fd` | `.dev-table` 的 `--el-table-row-hover-bg-color` |
-
-   `.dev-table` 的注释里说明过这几档为什么必须是**合成后的不透明值**：Element 的固定列
-   靠 `background: inherit` 取行底色，半透明底色会让横向滚动的内容从固定列下透出来。
-   这里沿用同一条结论。
+   表格底色等档位必须是**合成后的不透明值**：Element 的固定列靠 `background: inherit`
+   取行底色，半透明底色会让横向滚动的内容从固定列下透出来。这里沿用同一条结论。
    ============================================================================ */
 :root,
 [data-73-theme] {
@@ -184,204 +127,184 @@
   --73-table-row-hover: color-mix(in srgb, var(--73-accent) 5%, var(--73-surface-strong));
   --73-table-disabled-bg: color-mix(in srgb, var(--73-bg) 62%, var(--73-surface-strong));
 
-  /* 分页器按钮底色：dev-base.css 登记的是 rgba(241,244,251,.9)，压在白卡上等于
-     90% `--73-bg` + 10% 白，与表头底色同值——这里直接复用表头那一档，不另起一个公式。 */
+  /* 分页器按钮底色与表头同值，不另起一个公式。 */
   --73-pager-button-bg: var(--73-table-header-bg);
   --73-pager-button-disabled-bg: var(--73-table-disabled-bg);
 
-  /* 信息色的三件套：源文件只登记了 `--73-info` 本体（灰），另外两档与本文件其余
-     状态色同口径——软底 12%、描边 32%。 */
+  /* 信息色的三件套：软底 12%、描边 32%、文字取基色。 */
   --73-info-soft: color-mix(in srgb, var(--73-info) 12%, transparent);
   --73-info-line: color-mix(in srgb, var(--73-info) 32%, transparent);
   --73-info-text: var(--73-info);
 
-  /* 中性色的三件套：用于「无强调语义」的提示与标签（`.dev-chip--muted` 那一档）。 */
+  /* 中性色的三件套：用于「无强调语义」的提示与标签。 */
   --73-neutral-soft: color-mix(in srgb, var(--73-ink-placeholder) 12%, transparent);
   --73-neutral-line: var(--73-border);
   --73-neutral-text: var(--73-ink-muted);
 
-  /* 开关轨道（关闭态）与复选框描边共用：两个都是「未选中的控件边界」，
-     源文件没有为它们单独登记色值，取体系里的描边档。 */
+  /* 开关轨道（关闭态）与复选框描边共用：未选中的控件边界。 */
   --73-track: var(--73-border);
 
-  /* 浮层提示（tooltip）：深底浅字。仓库里没有登记过这一档
-     （`<el-tooltip>` 用量为 0），按「正文墨色的 92%」从已有基色算，
-     两套主题各自得到符合自身墨色的一支深底。 */
+  /* 浮层提示（tooltip）：深底浅字。两套主题的墨色相反，所以深色主题在自己的
+     块里显式覆盖这两个值。 */
   --73-tooltip-bg: color-mix(in srgb, var(--73-ink) 92%, transparent);
   --73-tooltip-ink: var(--73-ink-inverse);
+
+  /* 页面底座的纹理与柔光：亮暗共用公式，`workbench.css` 消费。 */
+  --73-grid-line: color-mix(in srgb, var(--73-border) 45%, transparent);
+  --73-hero-glow: color-mix(in srgb, var(--73-accent) 8%, transparent);
 }
 
 /* ============================================================================
-   3. 主题：portal（默认）
+   3. 主题：workbench（亮色，默认）
    ----------------------------------------------------------------------------
-   色值来源：
-   - user_client/src/styles/resource-core.css 的 `:root`（--bg-deep / --card-bg / --accent …）
-   - user_client/src/styles/home.css 的 `.portal-home`（--portal-*）
-   - user_client/src/styles/profile.css 的 `.profile-page`（状态色的「浅底 + 深字」）
-   全部照搬，一个值都没有重调。
+   画布 `#f8fafc`、表面纯白、1px `#e2e8f0` 描边、四级微阴影；主色 `#2563eb`，
+   主按钮平色。四支状态色的工作台语义：绿 = 成功 / 公开、琥珀 = 提醒与积分、
+   红 = 危险与点赞、slate = 中性信息。
    ============================================================================ */
 :root,
-[data-73-theme='portal'] {
+[data-73-theme='workbench'] {
   /* --- 背景与表面 --- */
-  --73-bg: #edf3f5; /* --bg-deep */
-  --73-bg-soft: #f5f8fa; /* --bg-mid */
-  --73-surface: rgba(255, 255, 255, 0.92); /* --card-bg */
-  --73-surface-strong: #ffffff; /* --bg-soft */
-  /* 内嵌块与只读区的浅填充。门户侧没有登记这个角色，取开发者侧同一个中性冷调填充
-     （dev 的 --el-fill-color-light），两边色相一致，不会出现第二套灰。 */
-  --73-inset: rgba(241, 244, 251, 0.62);
+  --73-bg: #f8fafc;
+  --73-bg-soft: #f1f5f9;
+  --73-surface: #ffffff;
+  --73-surface-strong: #ffffff;
+  --73-inset: #f1f5f9;
 
   /* --- 描边 --- */
-  --73-border: rgba(203, 213, 225, 0.72); /* --portal-border */
-  --73-border-soft: rgba(148, 163, 184, 0.3); /* --card-border，卡片内分隔线 */
-  --73-border-hover: rgba(31, 74, 209, 0.32); /* 与 dev 的 --el-border-color-hover 同值 */
+  --73-border: #e2e8f0;
+  --73-border-soft: #f1f5f9;
+  --73-border-hover: #cbd5e1;
 
   /* --- 文字 --- */
-  --73-ink: #172033; /* --text-main */
-  --73-ink-soft: #52627a; /* --text-sub */
-  --73-ink-muted: #64748b; /* --portal-muted */
-  --73-ink-placeholder: #94a3b8; /* dev 的占位符色，两端同值 */
+  --73-ink: #0f172a;
+  --73-ink-soft: #475569;
+  --73-ink-muted: #64748b;
+  --73-ink-placeholder: #94a3b8;
   --73-ink-disabled: #cbd5e1;
-  --73-ink-inverse: #ffffff; /* 主按钮上的文字 */
-
-  /* --- 强调色 --- */
-  --73-accent: #1f4ad1;
-  --73-accent-soft: rgba(31, 74, 209, 0.08);
-  --73-accent-line: rgba(31, 74, 209, 0.32);
-  /* 门户侧主按钮走渐变（resource-core.css 的 --primary-gradient）。 */
-  --73-accent-gradient: linear-gradient(135deg, #2563eb, #4f8cff);
-  --73-accent-contrast: #ffffff;
-
-  /* --- 状态色 ---
-     成功取 resource-core.css 登记的门户主绿；警示取首页统计卡的「琥珀」档位
-     （设计规范第三节登记过）；危险取 profile.css 的危险深字。
-     软底与深字沿用 profile.css 那组「浅底 + 深字」，设计规范明确要求新写状态标签照这个思路，
-     不要直接用饱和色做背景。 */
-  --73-success: #16805c;
-  --73-success-soft: rgba(34, 197, 94, 0.12);
-  /* 状态描边：源文件没有登记这一档，用基色算 32%（与 --73-accent-line 同一个 alpha），
-     这样不必为每一支状态再抄一个字面量，换基色时描边自动跟着走。 */
-  --73-success-line: color-mix(in srgb, var(--73-success) 32%, transparent);
-  --73-success-text: #166534;
-
-  --73-warning: #d97706;
-  --73-warning-soft: rgba(245, 158, 11, 0.14);
-  --73-warning-line: color-mix(in srgb, var(--73-warning) 32%, transparent);
-  --73-warning-text: #92400e;
-
-  --73-danger: #b42318;
-  --73-danger-soft: rgba(239, 68, 68, 0.12);
-  --73-danger-line: color-mix(in srgb, var(--73-danger) 32%, transparent);
-  --73-danger-text: #b42318;
-
-  --73-info: #64748b;
-
-  /* --- 滚动条 ---
-     门户侧没有登记滚动条色（外壳的滚动交给 el-scrollbar），这里用弱化墨色算两档。 */
-  --73-scrollbar-thumb: color-mix(in srgb, var(--73-ink-muted) 42%, transparent);
-  --73-scrollbar-thumb-hover: color-mix(in srgb, var(--73-ink-muted) 62%, transparent);
-
-  /* --- 阴影 --- */
-  --73-shadow-card: 0 14px 34px rgba(71, 85, 105, 0.08); /* --portal-shadow */
-  --73-shadow-card-hover: 0 20px 44px rgba(71, 85, 105, 0.13); /* --portal-shadow-hover */
-  --73-shadow-control: 0 10px 22px rgba(31, 74, 209, 0.22); /* 主按钮悬浮，同 dev */
-  --73-shadow-dialog: 0 20px 48px rgba(30, 64, 175, 0.16);
-  /* 浮层投影取 profile.css 的 `.requirement-action-menu.el-popper`（门户体系的菜单）。 */
-  --73-shadow-panel: 0 18px 36px rgba(15, 23, 42, 0.12);
-  --73-dialog-veil: rgba(15, 23, 42, 0.16); /* modal.css 的 .modal-wrap 遮罩 */
-
-  /* --- 字体 ---
-     实际生效的是 resource-core.css 给 body 声明的这一条（仓库里没有任何 @font-face，
-     声明的 Web 字体不会加载，最终落到系统默认无衬线）。详见设计规范第四节。 */
-  --73-font-family: 'Space Grotesk', 'Noto Sans SC', sans-serif;
-}
-
-/* ============================================================================
-   4. 主题：dev
-   ----------------------------------------------------------------------------
-   色值来源：user_client/src/styles/dev-base.css 的 `:root`（--dev-*）。
-   工作台外壳 `portal-workbench.css` 的 `--wb-*` 与这里的对应值相同，由 alias.css
-   桥接过来；它不是一个独立主题，理由见文件顶部。
-
-   三个强调色的语义（dev-base.css 顶部注释写明，且被上百处引用，不可换色相）：
-   蓝 = 进行中、青 = 已完成、金 = 金额与提示。所以这一套的 success 是**青**不是绿、
-   warning 是**金**不是琥珀——与 portal 不同，这是刻意的。
-   ============================================================================ */
-[data-73-theme='dev'] {
-  /* --- 背景与表面 --- */
-  --73-bg: #f1f4fb; /* --dev-bg */
-  --73-bg-soft: #f1f4fb; /* 开发者侧只有一档底色 */
-  --73-surface: rgba(255, 255, 255, 0.96); /* --dev-surface，冷白 */
-  --73-surface-strong: #ffffff; /* --dev-surface-strong */
-  --73-inset: rgba(241, 244, 251, 0.62); /* --el-fill-color-light */
-
-  /* --- 描边 --- */
-  --73-border: rgba(203, 213, 225, 0.66); /* --dev-line */
-  --73-border-soft: rgba(203, 213, 225, 0.42); /* --el-border-color-lighter */
-  --73-border-hover: rgba(31, 74, 209, 0.32); /* --el-border-color-hover */
-
-  /* --- 文字 ---
-     注意 --73-ink 是 #0f172a，比门户侧的 #172033 更冷更深；resource-core.css 的
-     `body { color: var(--text-main) }` 会把这个墨色盖到所有页面，dev-base.css 里专门
-     在作用域上显式声明了一次来纠回来。组件层声明 color: var(--73-ink) 即可，不继承 body。 */
-  --73-ink: #0f172a; /* --dev-ink */
-  --73-ink-soft: #475569; /* --dev-ink-soft */
-  --73-ink-muted: #64748b; /* --dev-muted */
-  --73-ink-placeholder: #94a3b8; /* --el-text-color-placeholder */
-  --73-ink-disabled: #cbd5e1; /* --el-text-color-disabled */
   --73-ink-inverse: #ffffff;
 
   /* --- 强调色 --- */
-  --73-accent: #1f4ad1; /* --dev-blue */
-  --73-accent-soft: rgba(31, 74, 209, 0.08); /* .dev-btn--ghost:hover 的底色 */
-  --73-accent-line: rgba(31, 74, 209, 0.32); /* .dev-btn--ghost:hover 的描边 */
-  /* 开发者侧主按钮是平色（.dev-btn--primary 就是 background: var(--dev-blue)），
-     没有门户侧那个渐变。这里让渐变退化为纯色，组件层不必为两端分支。 */
-  --73-accent-gradient: linear-gradient(135deg, #1f4ad1, #1f4ad1);
+  --73-accent: #2563eb;
+  --73-accent-soft: #eff6ff;
+  --73-accent-line: #dbeafe;
+  --73-accent-gradient: linear-gradient(135deg, #2563eb, #2563eb);
   --73-accent-contrast: #ffffff;
 
-  /* --- 状态色：青 / 金 / 红 --- */
-  --73-success: #2aa6a4; /* --dev-cyan，「已完成」 */
-  --73-success-soft: rgba(42, 166, 164, 0.12);
-  --73-success-line: color-mix(in srgb, var(--73-success) 32%, transparent);
-  --73-success-text: #228583; /* --el-color-success-dark-2 */
+  /* --- 状态色：饱和基色 + 浅底 + 深字 --- */
+  --73-success: #10b981;
+  --73-success-soft: #ecfdf5;
+  --73-success-line: #d1fae5;
+  --73-success-text: #047857;
 
-  --73-warning: #b9812b; /* --dev-gold，「金额与提示」 */
-  --73-warning-soft: rgba(185, 129, 43, 0.12);
-  --73-warning-line: color-mix(in srgb, var(--73-warning) 32%, transparent);
-  --73-warning-text: #946722; /* --el-color-warning-dark-2 */
+  --73-warning: #f59e0b;
+  --73-warning-soft: #fffbeb;
+  --73-warning-line: #fde68a;
+  --73-warning-text: #92400e;
 
-  /* 危险色是开发者体系里唯一一支红，dev-base.css 明确保留了它的「语义红」身份
-     （只用于终止合作 / 解散 / 删除这类破坏性操作），没有跟强调色统一。取 .dev-btn--danger 的值。 */
-  --73-danger: #dc2626;
-  --73-danger-soft: rgba(220, 38, 38, 0.08); /* .dev-btn--danger:hover 的底色 */
-  --73-danger-line: rgba(220, 38, 38, 0.32); /* .dev-btn--danger 的描边 */
-  --73-danger-text: #dc2626;
+  --73-danger: #ef4444;
+  --73-danger-soft: #fef2f2;
+  --73-danger-line: #fecaca;
+  --73-danger-text: #b91c1c;
 
   --73-info: #64748b;
 
-  /* --- 滚动条：蓝→青渐变，开发者侧专有 --- */
-  --73-scrollbar-thumb: linear-gradient(180deg, rgba(31, 74, 209, 0.62), rgba(42, 166, 164, 0.72));
-  --73-scrollbar-thumb-hover: linear-gradient(
-    180deg,
-    rgba(31, 74, 209, 0.82),
-    rgba(42, 166, 164, 0.88)
-  );
+  /* --- 提示条：深底浅字（派生块同式，这里显式登记以保持主题令牌齐全） --- */
+  --73-tooltip-bg: color-mix(in srgb, var(--73-ink) 92%, transparent);
+  --73-tooltip-ink: var(--73-ink-inverse);
 
-  /* --- 阴影 --- */
-  --73-shadow-card: 0 20px 44px rgba(71, 85, 105, 0.1); /* --dev-shadow */
-  /* 开发者侧的卡片悬浮不抬升（--dev-shadow 只有一个值），所以两档同值。 */
-  --73-shadow-card-hover: 0 20px 44px rgba(71, 85, 105, 0.1);
-  --73-shadow-control: 0 10px 22px rgba(31, 74, 209, 0.22); /* .dev-btn--primary:hover */
-  --73-shadow-dialog: 0 20px 48px rgba(30, 64, 175, 0.16);
-  /* 浮层投影取 dev-resource.css 的 `.dev-resource-action-menu.el-popper`（开发者体系的菜单）。 */
-  --73-shadow-panel: 0 18px 36px rgba(71, 85, 105, 0.16);
-  --73-dialog-veil: rgba(15, 23, 42, 0.16);
+  /* --- 滚动条：中性 slate --- */
+  --73-scrollbar-thumb: color-mix(in srgb, var(--73-ink-muted) 42%, transparent);
+  --73-scrollbar-thumb-hover: color-mix(in srgb, var(--73-ink-muted) 62%, transparent);
 
-  /* --- 字体 ---
-     dev-base.css 在 `:root` 声明的这一条**不会作用到正文**（body 自己有 font-family），
-     写着 IBM Plex Sans 但实际看不到它。这里照搬登记，等补齐字体文件后自然生效。 */
-  --73-font-family:
-    'IBM Plex Sans', 'PingFang SC', 'Noto Sans SC', 'Hiragino Sans GB', 'Microsoft YaHei',
-    sans-serif;
+  /* --- 阴影：工作台设计稿登记的四级微阴影 --- */
+  --73-shadow-card: 0 1px 2px 0 rgba(15, 23, 42, 0.04);
+  --73-shadow-card-hover:
+    0 2px 4px 0 rgba(15, 23, 42, 0.06), 0 1px 2px -1px rgba(15, 23, 42, 0.04);
+  --73-shadow-control:
+    0 2px 4px 0 rgba(15, 23, 42, 0.06), 0 1px 2px -1px rgba(15, 23, 42, 0.04);
+  --73-shadow-dialog:
+    0 20px 25px -5px rgba(15, 23, 42, 0.12), 0 8px 10px -6px rgba(15, 23, 42, 0.06);
+  --73-shadow-panel:
+    0 4px 12px -2px rgba(15, 23, 42, 0.08), 0 2px 6px -2px rgba(15, 23, 42, 0.04);
+  --73-dialog-veil: rgba(15, 23, 42, 0.2);
+
+  /* --- 页面底座纹理与柔光（workbench.css 消费） --- */
+  --73-grid-line: rgba(226, 232, 240, 0.45);
+  --73-hero-glow: rgba(37, 99, 235, 0.05);
+}
+
+/* ============================================================================
+   4. 主题：workbench-dark（暗色）
+   ----------------------------------------------------------------------------
+   画布 `#0b1120`、卡片 `#0f172a`、顶栏/内嵌条 `#111827`、悬浮态 `#1e293b`；
+   主色 `#3b82f6`（链接与激活态），主按钮填充 `#2563eb`——与设计稿
+   「primary-blue / primary-btn」两个 token 的分工一致。状态色改为深底 + 亮字。
+   ============================================================================ */
+[data-73-theme='workbench-dark'] {
+  /* --- 背景与表面 --- */
+  --73-bg: #0b1120;
+  --73-bg-soft: #111827;
+  --73-surface: #0f172a;
+  --73-surface-strong: #0f172a;
+  --73-inset: #1e293b;
+
+  /* --- 描边 --- */
+  --73-border: #1f2937;
+  --73-border-soft: #1f2937;
+  --73-border-hover: #334155;
+
+  /* --- 文字 --- */
+  --73-ink: #e2e8f0;
+  --73-ink-soft: #94a3b8;
+  --73-ink-muted: #64748b;
+  --73-ink-placeholder: #64748b;
+  --73-ink-disabled: #475569;
+  --73-ink-inverse: #ffffff;
+
+  /* --- 强调色 --- */
+  --73-accent: #3b82f6;
+  --73-accent-soft: #172554;
+  --73-accent-line: #1e3a8a;
+  --73-accent-gradient: linear-gradient(135deg, #2563eb, #2563eb);
+  --73-accent-contrast: #ffffff;
+
+  /* --- 状态色：深底 + 亮字 --- */
+  --73-success: #34d399;
+  --73-success-soft: #064e3b;
+  --73-success-line: #065f46;
+  --73-success-text: #6ee7b7;
+
+  --73-warning: #fbbf24;
+  --73-warning-soft: #451a03;
+  --73-warning-line: #78350f;
+  --73-warning-text: #fcd34d;
+
+  --73-danger: #f87171;
+  --73-danger-soft: #450a0a;
+  --73-danger-line: #7f1d1d;
+  --73-danger-text: #fca5a5;
+
+  --73-info: #94a3b8;
+
+  /* --- 提示条：不能用「墨色 92%」推导（浅墨会得到浅底浅字），显式给深底 --- */
+  --73-tooltip-bg: #1e293b;
+  --73-tooltip-ink: #e2e8f0;
+
+  /* --- 滚动条 --- */
+  --73-scrollbar-thumb: color-mix(in srgb, var(--73-ink-muted) 52%, transparent);
+  --73-scrollbar-thumb-hover: color-mix(in srgb, var(--73-ink-muted) 72%, transparent);
+
+  /* --- 阴影：深色下只做层次分隔，几乎不可见 --- */
+  --73-shadow-card: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
+  --73-shadow-card-hover: 0 2px 4px 0 rgba(0, 0, 0, 0.5);
+  --73-shadow-control: 0 4px 12px -2px rgba(0, 0, 0, 0.35);
+  --73-shadow-dialog:
+    0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
+  --73-shadow-panel:
+    0 4px 12px -2px rgba(0, 0, 0, 0.45), 0 2px 6px -2px rgba(0, 0, 0, 0.35);
+  --73-dialog-veil: rgba(2, 6, 23, 0.6);
+
+  /* --- 页面底座纹理与柔光 --- */
+  --73-grid-line: rgba(31, 41, 55, 0.45);
+  --73-hero-glow: rgba(37, 99, 235, 0.1);
 }

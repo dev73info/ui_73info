@@ -5,20 +5,21 @@
  * 所以「切主题」就是在根元素上换一个属性值——纯 CSS，没有 JS 重算，也没有
  * 「把样式表重新注入一遍」那种做法。这里只提供这个动作的封装与当前值的一份响应式镜像。
  *
- * ## 只有两个主题
+ * ## 两套主题
  *
- * `portal` 与 `dev`，对应 `user_client/doc/设计规范.md` 第一节登记的两套视觉体系。
- * 这里**刻意没有**第三个「工作台外壳」主题：`--wb-*` 只定义 10 个令牌（尺寸、主色三件套、
- * 描边、弱化墨色、阴影），背景与表面沿用门户侧，状态色跟随当前模式。把它建模成
- * 独立主题会在门户模式下渲染出开发者侧的青与金。完整推理见 `tokens.css` 顶部与
- * `doc/架构.md` 第二节。
+ * | 主题 | 说明 | 主色 |
+ * | --- | --- | --- |
+ * | `workbench`（默认） | 亮色：画布 `#f8fafc`、白色表面 | `#2563eb` |
+ * | `workbench-dark` | 暗色：画布 `#0b1120`、三层深色表面 | `#3b82f6` |
  *
- * ## 为什么属性必须落在 `<html>` 上
+ * 两套共用同一组 `--73-*` 令牌名，组件只认令牌，不关心自己当前在哪套主题下。
+ * 取值来源与版式规则见 `tokens.css` 顶部。
+ *
+ * ## 为什么属性通常落在 `<html>` 上
  *
  * CSS 自定义属性在**声明它的那个元素**上求值，后代拿到的是已经算好的结果。组件自身读
- * `var(--73-*)`，所以把主题属性挂到任意子树都能让那棵子树换主题；但迁移兼容层
- * `alias.css` 要映射的旧变量名广泛用于 `:root` 作用域，只有挂在 `<html>` 上才正确。
- * 细节见 `src/styles/tokens.css` 与 `src/styles/alias.css` 顶部。
+ * `var(--73-*)`，所以把主题属性挂到任意子树都能让那棵子树换主题；`applyTheme()`
+ * 默认写到 `<html>`，整页生效。
  */
 
 import { readonly, ref, type Ref } from 'vue'
@@ -26,13 +27,13 @@ import { readonly, ref, type Ref } from 'vue'
 /** 承载主题的 HTML 属性名 */
 export const THEME_ATTRIBUTE = 'data-73-theme'
 
-/** 可选主题名。只有两个，理由见文件顶部。 */
-export const THEMES = ['portal', 'dev'] as const
+/** 可选主题名：亮色（默认）与暗色。 */
+export const THEMES = ['workbench', 'workbench-dark'] as const
 
 export type ThemeName = (typeof THEMES)[number]
 
 /** 不写属性时的主题（也是 `tokens.css` 里 `:root` 给的那一套） */
-export const DEFAULT_THEME: ThemeName = 'portal'
+export const DEFAULT_THEME: ThemeName = 'workbench'
 
 export function isThemeName(value: unknown): value is ThemeName {
   return typeof value === 'string' && (THEMES as readonly string[]).includes(value)
@@ -89,8 +90,8 @@ export function syncThemeFromDOM(): ThemeName {
 /**
  * 组件里读当前主题。
  *
- * 返回的是只读镜像，改主题一律走 `applyTheme`——两处都能写会出现「镜像说 dev、
- * DOM 上还是 portal」的状态。
+ * 返回的是只读镜像，改主题一律走 `applyTheme`——两处都能写会出现
+ * 「镜像说 workbench-dark、DOM 上还是 workbench」的状态。
  */
 export function useTheme(): { theme: Readonly<Ref<ThemeName>> } {
   return { theme: readonly(currentTheme) as Readonly<Ref<ThemeName>> }

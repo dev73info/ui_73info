@@ -6,9 +6,8 @@ export interface TCardProps {
   /**
    * 悬浮时抬升阴影。默认 `false`。
    *
-   * 开发者侧的卡片不做悬浮抬升（`--dev-shadow` 只有一个值），门户侧有
-   * `--portal-shadow-hover`；令牌层把两档都给了，组件照读，所以同一个开关
-   * 在两套主题下各自表现正确。
+   * 两档阴影分别取 `--73-shadow-card` 与 `--73-shadow-card-hover`；
+   * 亮色抬升明显，暗色只做层次分隔。组件照读令牌，不关心当前主题。
    */
   hoverable?: boolean
   /**
