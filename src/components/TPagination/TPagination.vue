@@ -339,7 +339,8 @@ const classes = computed(() => [
 }
 
 .t73-pagination__button:hover:not(:disabled) {
-  color: var(--73-accent);
+  background: var(--73-inset);
+  color: var(--73-ink);
 }
 
 .t73-pagination__button:focus-visible {
@@ -360,6 +361,19 @@ const classes = computed(() => [
 .t73-pagination--background .t73-pagination__page--active {
   color: var(--73-accent);
   font-weight: var(--73-font-weight-bold);
+}
+
+/* 未选中的页码只是可点的数字：不铺底色、不描边，避免整排页码看起来像一排按钮。 */
+.t73-pagination__page:not(.t73-pagination__page--active) {
+  border: none;
+  background: transparent;
+}
+
+/* 选中页悬停时保留选中语义，不要被通用 hover 的灰底盖掉。 */
+.t73-pagination__page--active:hover:not(:disabled),
+.t73-pagination--background .t73-pagination__page--active:hover:not(:disabled) {
+  background: var(--73-accent-soft);
+  color: var(--73-accent);
 }
 
 .t73-pagination__gap {
